@@ -1,0 +1,423 @@
+---
+title: "Transformative Change Assessment - Ch 3 - Clusters"
+author: Rainer M Krug <Rainer.Krug@senckenberg.de> <Rainer@krugs.de>
+format:
+    html:
+        toc: true
+        toc-depth: 3
+        embed-resources: true
+        code-fold: true
+        code-summary: "Show the code"
+        grid:
+            sidebar-width: 0px
+            body-width: 4000px
+            margin-width: 200px
+            gutter-width: 1.5rem   
+params:
+    key_paper: "cX_key-paper.csv"
+---
+
+# Back to [Readme](https://IPBES-Data.github.io/IPBES_BBA_Ch4_Snowball_Pilot_1/)
+
+# Setup
+```{r}
+#| label: setup
+#|
+if (!exists("params")) {
+    params <- rmarkdown::yaml_front_matter("snowball.qmd")$params
+}
+
+knitr::opts_chunk$set(message = NA)
+
+library(IPBES.R)
+library(openalexR)
+library(dplyr)
+
+library(tibble)
+# library(dplyr)
+# library(knitr)
+library(networkD3)
+library(tictoc)
+fns <- sapply(
+    1:6,
+    function(i) {
+        gsub(
+            pattern = "X",
+            replacement = i,
+            x = file.path("input", "key_papers", params$key_paper)
+        )
+    }
+)
+
+cluster <- lapply(
+    fns,
+    function(fn) {
+        list(
+            fn = fn,
+            dois = read.csv(fn)$DOI
+        )
+    }
+)
+
+names(cluster) <- paste0("cluster_", 1:6)
+```
+
+# Searches
+
+## Setup OpenAlex usage and do Snowballs
+
+```{r}
+#| label: openalex_searches
+#|
+tic()
+fn <- file.path("data", "cluster.rds")
+if (file.exists(fn)) {
+    cluster <- readRDS(fn)
+} else {
+    cluster <- lapply(
+        cluster,
+        function(cl) {
+            message("Processing ", cl$fn, " ...")
+            message("|- Fetching works...")
+            key_works <- oa_fetch(
+                entity = "works",
+                doi = cl$dois,
+                verbose = FALSE
+            )
+            key_works$id <- gsub(
+                pattern = "https://openalex.org/",
+                replacement = "",
+                key_works$id
+            )
+            message("|- Snowballing works...")
+            snowball <- oa_snowball(
+                identifier = openalexR:::shorten_oaid(key_works$id),
+                verbose = FALSE
+            )
+            message("|- Converting to tibble...")
+            snowball_df <- snowball2df(snowball) |>
+                as_tibble()
+            message("\n")
+            list(
+                cl,
+                key_works = key_works,
+                snowball_1 = snowball,
+                snowball_1_df = snowball_df
+            )
+        }
+    )
+
+    ## Detemine linkages between Clusters
+
+    nodes <- data.frame(
+        id = names(cluster),
+        n = sapply(
+            cluster,
+            function(cl) {
+                nrow(cl$snowball_1$nodes)
+            }
+        ),
+        n_kp = sapply(
+            cluster,
+            function(cl) {
+                nrow(cl$key_works)
+            }
+        ),
+        stringsAsFactors = FALSE
+    )
+
+    edges <- expand.grid(
+        names(cluster),
+        names(cluster),
+        stringsAsFactors = FALSE
+    )
+    names(edges) <- c("from", "to")
+    edges <- edges[edges$from != edges$to, ]
+    rownames(edges) <- NULL
+
+
+    ## in_l1: keypaper c1 %in% keypaper c2
+    edges$in_l1 <- sapply(
+        1:nrow(edges),
+        function(i) {
+            cluster[[edges$from[i]]]$key_works$id %in% cluster[[edges$to[i]]]$key_works$id |>
+                sum()
+        }
+    )
+
+
+    ## in_l2: keypaper c1 %in% nodes c2
+    edges$in_l2 <- sapply(
+        1:nrow(edges),
+        function(i) {
+            cluster[[edges$from[i]]]$key_works$id %in% cluster[[edges$to[i]]]$snowball_1$nodes$id |>
+                sum()
+        }
+    )
+
+    ## in_l3: nodes c1 %in% nodes c2
+    edges$in_l3 <- sapply(
+        1:nrow(edges),
+        function(i) {
+            cluster[[edges$from[i]]]$snowball_1$nodes$id %in% cluster[[edges$to[i]]]$snowball_1$nodes$id |>
+                sum()
+        }
+    )
+
+    cluster$links <- list(
+        nodes = nodes,
+        edges = edges
+    )
+
+    saveRDS(cluster, fn)
+}
+toc()
+```
+
+
+## Do second snowball search (S2)
+
+For the second snowball search (S2) we use the corpus identified by S1 as the key-papers.
+
+This needs to be enabled (`eval = false` needs to be changed to `eval = true` in the following code block) as the resulting data file is to large for github and running of the snowball search
+takes several hours.
+
+```{r}
+#| label: openalex_snowball_2
+#| eval: false
+
+cluster <- lapply(
+    cluster,
+    function(cl) {
+        message("Processing ", cl$fn, " ...")
+        message("|- Snowballing works 2nd gen...")
+        snowball <- oa_snowball(
+            identifier = cl$snowball_1$nodes$id,
+            verbose = FALSE
+        )
+        message("|- Converting to tibble...")
+        snowball_df <- snowball2df(snowball) |>
+            as_tibble()
+        message("\n")
+        list(
+            cl,
+            snowball_2 = snowball,
+            snowball_2_df = snowball_df
+        )
+    }
+)
+saveRDS(cluster, fn)
+```
+
+
+
+# Graphs
+
+## Create Static Citation Network Graph of the S1 Corpus
+
+Only S1 corpus of S1 can be graphed due to the size of the S2 corpus.
+
+```{r}
+#| label: openalex_graph_S1
+#| eval: false
+#|
+
+tic()
+
+lapply(
+    names(cluster),
+    function(name) {
+        plot_name <- paste0(name, "_S1")
+        if (length(list.files("figures", pattern = paste0(plot_name, ".*(pdf|png)"))) < 4) {
+            message("Plotting ", name, " ...")
+            tmp <- plot_snowball(
+                cluster[[name]]$snowball_1,
+                name = plot_name
+            )
+        }
+    }
+)
+
+toc()
+```
+
+## Create Interactive Citation Network Graph of the S1 Corpus
+
+```{r}
+#| label: openalex_graph_S1_interactive
+#| eval: false
+#|
+
+tic()
+
+lapply(
+    names(cluster),
+    function(name) {
+        plot_name <- paste0(name, paste0(name, "_S1_interactive_network.html"))
+        if (!file.exists(file.path("figures", plot_name))) {
+            message("Plotting Interactive", name, " ...")
+            nwg <- IPBES.R::plot_snowball_interactive(
+                snowball = cluster[[name]]$snowball_1,
+                key_works = cluster[[name]]$key_works,
+                file = file.path("figures", plot_name)
+        )
+    }
+)
+
+toc()
+```
+
+## The Graphs
+
+The following interactions are possible in the interactive graphs:
+
+- moving your mouse over a node, the title author and year of the paper is shown.
+- clicking on a node will open the paper in a new tab.
+- scrolling up and down with your scroll wheel zooms in and out
+- clicking on the canvas and move the mouse will move the network
+- clicking on a node and dragging it moves the node
+
+### Cluster 1
+
+![](figures/cluster_1_S1_cited_by_count_by_year.png)
+
+- [Better quality](figures/cluster_1_S1_cited_by_count_by_year.pdf){target=_blank}
+- [Interactive](figures/cluster_1_S1_interactive_network.html){target=_blank}.
+
+### Cluster 2
+
+![](figures/cluster_2_S1_cited_by_count_by_year.png)
+
+- [Better quality](figures/cluster_2_S1_cited_by_count_by_year.pdf){target=_blank}
+- [Interactive](figures/cluster_2_S1_interactive_network.html){target=_blank}.
+
+### Cluster 3
+
+![](figures/cluster_3_S1_cited_by_count_by_year.png)
+
+- [Better quality](figures/cluster_3_S1_cited_by_count_by_year.pdf){target=_blank}
+- [Interactive](figures/cluster_3_S1_interactive_network.html){target=_blank}.
+
+### Cluster 4
+
+![](figures/cluster_4_S1_cited_by_count_by_year.png)
+
+- [Better quality](figures/cluster_4_S1_cited_by_count_by_year.pdf){target=_blank}
+- [Interactive](figures/cluster_4_S1_interactive_network.html){target=_blank}.
+
+### Cluster 5
+
+![](figures/cluster_5_S1_cited_by_count_by_year.png)
+
+- [Better quality](figures/cluster_5_S1_cited_by_count_by_year.pdf){target=_blank}
+- [Interactive](figures/cluster_5_S1_interactive_network.html){target=_blank}.
+
+### Cluster 6
+
+![](figures/cluster_6_S1_cited_by_count_by_year.png)
+
+- [Better quality](figures/cluster_6_S1_cited_by_count_by_year.pdf){target=_blank}
+- [Interactive](figures/cluster_6_S1_interactive_network.html){target=_blank}.
+
+
+## Links between Clusters
+
+```{r}
+#| label: openalex_plot_linkages
+#| eval: false
+#|
+
+# level <- "l1"
+
+# list(
+#     nodes = nodes,
+#     edges = edges |>
+#         dplyr::filter(get(paste0("in_", level)) > 0)
+# ) |>
+#     tidygraph::as_tbl_graph(
+#         directed = TRUE
+#     ) |>
+#     ggraph::ggraph(
+#         layout = "circle"
+#     ) +
+#     ggraph::geom_edge_link(
+#         aes(
+#             alpha = ggplot2::after_stat(index),
+#             # edge_width = ggplot2::after_stat(index)
+#         ),
+#         show.legend = FALSE
+#     ) +
+#     ggraph::geom_node_point(
+#         ggplot2::aes(
+#             size = n,
+#             # shape = type
+#             # col = oa_input
+#         )
+#     ) +
+#     ggraph::geom_node_label(
+#         ggplot2::aes(
+#             label = id
+#         ),
+#         nudge_y = 0.04,
+#         size = 5
+#     ) +
+#     ggraph::geom_edge_link(
+#         aes(width = in_l1),
+#         arrow = arrow()
+#     ) +
+
+# ggraph::scale_edge_width(
+#     range = c(0.1, 1.5),
+#     guide = "none"
+# ) +
+#     ggplot2::scale_shape(
+#         solid = TRUE,
+#         name = "Publication Type"
+#     ) +
+#     ggplot2::scale_size(
+#         range = c(3, 10),
+#         name = "No of Papers per Cluster"
+#     ) +
+
+#     ggraph::theme_graph() +
+#     ggplot2::theme(
+#         plot.background = element_rect(fill = "transparent", colour = NA),
+#         panel.background = element_rect(fill = "transparent", colour = NA),
+#         legend.position = "right"
+#     ) +
+#     ggplot2::guides(fill = "none") +
+#     ggplot2::ggtitle(paste0(name, "Cited by average count per year"))
+
+```
+
+# Common works between clusters
+
+## Cluster properties
+```{r}
+IPBES.R::table_dt(data = cluster$links$nodes)
+```
+
+
+## Links between clusters
+
+- **in_l1**: (keypaper in `from`) in (keypaper in `to`)
+- **in_l2**: (keypaper in `from`) in (snowball in `to`)
+- **in_l3**: (snowball in `from`) in (snowball in `to`)
+
+```{r}
+IPBES.R::table_dt(data = cluster$links$edges)
+```
+
+# Identification Common Works
+- number of links between clusters 
+    - l1: keypaper c1 <-> keypaper c2
+    - l2: keypaper c1 <-> snowball c1/c2 <-> keypaperc2
+    - l3: keypaper c1 <-> snowball c1 <-> snowball c2 <-> keypaper c2
+
+# Graph Connectedness of Clusters
+- nodes clusters (number of papers - standardise by no key-papers?)
+- edges between clusters
+    - l1: keypaper <-> keypaper
+    - l2: keypaper <-> snowball <-> keypaper
+    - l3: keypaper <-> snowball <-> snowball <-> keypaper
+    
