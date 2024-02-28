@@ -38,6 +38,10 @@ library(tibble)
 # library(knitr)
 library(networkD3)
 library(tictoc)
+
+# devtools::install_github("mattflor/chorddiag")
+library(chorddiag)
+
 fns <- sapply(
     1:6,
     function(i) {
@@ -61,6 +65,37 @@ cluster <- lapply(
 
 names(cluster) <- paste0("cluster_", 1:6)
 ```
+
+# Verification of key papers
+
+The key papers should describe the cluster, exactly one cluster, and not multiple clusters. In other words,
+a key paper should only be in one cluster. If a key-papers is in multiple clusters, this would lead to an overlap wof the snowball corpus which is not caused by the cluster itself, but by the key paper which is in multiple clusters.
+
+The papers are the following (the table will be empty if there are none):
+
+```{r}
+dupl_kp <- lapply(
+    cluster,
+    function(cl) {
+        x <- cl$dois
+        x[x != ""]
+    }
+) |>
+    unlist()
+dupl_kp <- dupl_kp[duplicated(dupl_kp)]
+
+sprintf('<a href="https://doi.org/%s" target="_blank">%s</a>', dupl_kp, dupl_kp) |>
+    knitr::kable()
+```
+
+These papers will be excluded from the analysis.
+
+```{r}
+for (i in grep("cluster", names(cluster), value = TRUE)) {
+    cluster[[i]]$dois <- cluster[[i]]$dois[!cluster[[i]]$dois %in% dupl_kp]
+}
+```
+
 
 # Searches
 
@@ -173,6 +208,7 @@ if (file.exists(fn)) {
 }
 toc()
 ```
+
 
 
 ## Do second snowball search (S2)
@@ -320,86 +356,32 @@ The following interactions are possible in the interactive graphs:
 - [Interactive](figures/cluster_6_S1_interactive_network.html){target=_blank}.
 
 
-## Links between Clusters
 
-```{r}
-#| label: openalex_plot_linkages
-#| eval: false
-#|
-
-# level <- "l1"
-
-# list(
-#     nodes = nodes,
-#     edges = edges |>
-#         dplyr::filter(get(paste0("in_", level)) > 0)
-# ) |>
-#     tidygraph::as_tbl_graph(
-#         directed = TRUE
-#     ) |>
-#     ggraph::ggraph(
-#         layout = "circle"
-#     ) +
-#     ggraph::geom_edge_link(
-#         aes(
-#             alpha = ggplot2::after_stat(index),
-#             # edge_width = ggplot2::after_stat(index)
-#         ),
-#         show.legend = FALSE
-#     ) +
-#     ggraph::geom_node_point(
-#         ggplot2::aes(
-#             size = n,
-#             # shape = type
-#             # col = oa_input
-#         )
-#     ) +
-#     ggraph::geom_node_label(
-#         ggplot2::aes(
-#             label = id
-#         ),
-#         nudge_y = 0.04,
-#         size = 5
-#     ) +
-#     ggraph::geom_edge_link(
-#         aes(width = in_l1),
-#         arrow = arrow()
-#     ) +
-
-# ggraph::scale_edge_width(
-#     range = c(0.1, 1.5),
-#     guide = "none"
-# ) +
-#     ggplot2::scale_shape(
-#         solid = TRUE,
-#         name = "Publication Type"
-#     ) +
-#     ggplot2::scale_size(
-#         range = c(3, 10),
-#         name = "No of Papers per Cluster"
-#     ) +
-
-#     ggraph::theme_graph() +
-#     ggplot2::theme(
-#         plot.background = element_rect(fill = "transparent", colour = NA),
-#         panel.background = element_rect(fill = "transparent", colour = NA),
-#         legend.position = "right"
-#     ) +
-#     ggplot2::guides(fill = "none") +
-#     ggplot2::ggtitle(paste0(name, "Cited by average count per year"))
-
-```
 
 # Common works between clusters
 
+This section looks at common works between the keypapers of each cluster as well as the whole corpus as obtained through a first generation snowball search using the provided keyworks.
+
+The links are classifiad using three levels:
+
+- **in_l1**: (keypaper in `from`) in (keypaper in `to`)
+- **in_l2**: (keypaper in `from`) in (snowball in `to`)
+- **in_l3**: (snowball in `from`) in (snowball in `to`)
+
 ## Cluster properties
+
+- **n**: number of papers in the snowball corpus
+- **n_kp**: number of keypapers
+
 ```{r}
-IPBES.R::table_dt(data = cluster$links$nodes)
+IPBES.R::table_dt(data = cluster$links$nodes[, -1])
 ```
 
 
 ## Links between clusters
 
+- **from**: cluster which is the cluster in which the papers are
+- **to**: cluster to which the `from` cluster is compared to
 - **in_l1**: (keypaper in `from`) in (keypaper in `to`)
 - **in_l2**: (keypaper in `from`) in (snowball in `to`)
 - **in_l3**: (snowball in `from`) in (snowball in `to`)
@@ -408,16 +390,120 @@ IPBES.R::table_dt(data = cluster$links$nodes)
 IPBES.R::table_dt(data = cluster$links$edges)
 ```
 
-# Identification Common Works
-- number of links between clusters 
-    - l1: keypaper c1 <-> keypaper c2
-    - l2: keypaper c1 <-> snowball c1/c2 <-> keypaperc2
-    - l3: keypaper c1 <-> snowball c1 <-> snowball c2 <-> keypaper c2
+The column `in_l1` shgould be all zeros as the keypapers should only be linked to one cluster and not to multiple clusters.
 
-# Graph Connectedness of Clusters
-- nodes clusters (number of papers - standardise by no key-papers?)
-- edges between clusters
-    - l1: keypaper <-> keypaper
-    - l2: keypaper <-> snowball <-> keypaper
-    - l3: keypaper <-> snowball <-> snowball <-> keypaper
-    
+
+
+## Links between Clusters
+
+```{r}
+#| label: get_linkages
+#| eval: true
+#|
+
+linkages <- rbind(
+    cluster$links$edges,
+    data.frame(
+        from = cluster$links$nodes$id,
+        to = cluster$links$nodes$id,
+        in_l1 = cluster$links$nodes$n_kp,
+        in_l2 = cluster$links$nodes$n_kp,
+        in_l3 = cluster$links$nodes$n
+    )
+)
+
+m <- linkages |>
+    select(from, to, in_l1) |>
+    tidyr::pivot_wider(
+        names_from = from,
+        values_from = in_l1
+    )
+rown <- m$to
+m <- m[, -1]
+m <- m[, sort(names(m))]
+m <- as.matrix(m)
+m[] <- as.numeric(m[])
+dimnames(m)[[1]] <- rown
+
+m_l1 <- m
+
+
+m <- linkages |>
+    select(from, to, in_l2) |>
+    tidyr::pivot_wider(
+        names_from = from,
+        values_from = in_l2
+    )
+rown <- m$to
+m <- m[, -1]
+m <- m[, sort(names(m))]
+m <- as.matrix(m)
+m[] <- as.numeric(m[])
+dimnames(m)[[1]] <- rown
+
+m_l2 <- m
+
+
+
+m <- linkages |>
+    select(from, to, in_l3) |>
+    tidyr::pivot_wider(
+        names_from = from,
+        values_from = in_l3
+    )
+rown <- m$to
+m <- m[, -1]
+m <- m[, sort(names(m))]
+m <- as.matrix(m)
+m[] <- as.numeric(m[])
+dimnames(m)[[1]] <- rown
+
+m_l3 <- m
+```
+
+### Level 1
+
+Number of keypapers in one cluster in the keypapers of another cluster.
+
+```{r}
+#| label: plot_chord_l1
+#| 
+
+chorddiag(
+    m_l1,
+    groupnamePadding = 20,
+    type = "directional"
+)
+```
+
+### Level 2
+
+Number of keypapers in one cluster in the snowball corpus of another cluster.
+
+```{r}
+#| label: plot_chord_l2
+#|
+
+chorddiag(
+    m_l2,
+    groupnamePadding = 20,
+    type = "directional"
+)
+
+```
+
+### Level 3
+
+Number of papers in the snowball corpus in one cluster in the snowball corpus of another cluster.
+
+```{r}
+#| label: plot_chord_l3
+#|
+
+chorddiag(
+    m_l3,
+    groupnamePadding = 20,
+    type = "directional"
+)
+
+```
