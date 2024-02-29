@@ -401,64 +401,68 @@ The column `in_l1` shgould be all zeros as the keypapers should only be linked t
 #| eval: true
 #|
 
-linkages <- rbind(
-    cluster$links$edges,
-    data.frame(
-        from = cluster$links$nodes$id,
-        to = cluster$links$nodes$id,
-        in_l1 = cluster$links$nodes$n_kp,
-        in_l2 = cluster$links$nodes$n_kp,
-        in_l3 = cluster$links$nodes$n
+n_clust <- data.frame(
+    from = cluster$links$nodes$id,
+    to = cluster$links$nodes$id,
+    in_l1 = cluster$links$nodes$n_kp,
+    in_l2 = cluster$links$nodes$n_kp,
+    in_l3 = cluster$links$nodes$n
+) |>
+    select(from, in_l1, in_l2, in_l3) |>
+    dplyr::rename(n_l1 = in_l1, n_l2 = in_l2, n_l3 = in_l3)
+
+linkages <- n_clust |>
+    merge(x = cluster$links$edges, by = "from") |>
+    group_by(from) |>
+    summarize(
+        in_l1 = unique(n_l1) - sum(in_l1),
+        in_l2 = unique(n_l2) - sum(in_l2),
+        in_l3 = unique(n_l3) - sum(in_l3)
+    ) |>
+    ungroup() |>
+    mutate(to = from) |>
+    relocate(to, .after = "from") |>
+    rbind(cluster$links$edges)
+
+linkages_p <- merge(
+    linkages,
+    n_clust,
+    by = "from"
+) |>
+    mutate(
+        in_l1 = in_l1 / n_l1,
+        in_l2 = in_l2 / n_l2,
+        in_l3 = in_l3 / n_l3,
+        n_l1 = NULL,
+        n_l2 = NULL,
+        n_l3 = NULL
+    ) |>
+    as_tibble()
+
+
+####
+
+plot_chord <- function(linkages, level) {
+    m <- linkages |>
+        select(from, to, contains(level)) |>
+        tidyr::pivot_wider(
+            names_from = to,
+            values_from = contains(level)
+        )
+    rown <- m$from
+    m <- m[, -1]
+    m <- m[, sort(names(m))]
+    m <- as.matrix(m)
+    m[] <- as.numeric(m[])
+    dimnames(m)[[1]] <- rown
+
+    cd <- chorddiag(
+        m,
+        groupnamePadding = 20,
+        type = "directional"
     )
-)
-
-m <- linkages |>
-    select(from, to, in_l1) |>
-    tidyr::pivot_wider(
-        names_from = from,
-        values_from = in_l1
-    )
-rown <- m$to
-m <- m[, -1]
-m <- m[, sort(names(m))]
-m <- as.matrix(m)
-m[] <- as.numeric(m[])
-dimnames(m)[[1]] <- rown
-
-m_l1 <- m
-
-
-m <- linkages |>
-    select(from, to, in_l2) |>
-    tidyr::pivot_wider(
-        names_from = from,
-        values_from = in_l2
-    )
-rown <- m$to
-m <- m[, -1]
-m <- m[, sort(names(m))]
-m <- as.matrix(m)
-m[] <- as.numeric(m[])
-dimnames(m)[[1]] <- rown
-
-m_l2 <- m
-
-
-
-m <- linkages |>
-    select(from, to, in_l3) |>
-    tidyr::pivot_wider(
-        names_from = from,
-        values_from = in_l3
-    )
-rown <- m$to
-m <- m[, -1]
-m <- m[, sort(names(m))]
-m <- as.matrix(m)
-m[] <- as.numeric(m[])
-dimnames(m)[[1]] <- rown
-
-m_l3 <- m
+    return(cd)
+}
 ```
 
 ### Level 1
@@ -469,11 +473,8 @@ Number of keypapers in one cluster in the keypapers of another cluster.
 #| label: plot_chord_l1
 #| 
 
-chorddiag(
-    m_l1,
-    groupnamePadding = 20,
-    type = "directional"
-)
+plot_chord(linkages, "l1")
+plot_chord(linkages_p, "l1")
 ```
 
 ### Level 2
@@ -484,12 +485,8 @@ Number of keypapers in one cluster in the snowball corpus of another cluster.
 #| label: plot_chord_l2
 #|
 
-chorddiag(
-    m_l2,
-    groupnamePadding = 20,
-    type = "directional"
-)
-
+plot_chord(linkages, "l2")
+plot_chord(linkages_p, "l2")
 ```
 
 ### Level 3
@@ -500,10 +497,6 @@ Number of papers in the snowball corpus in one cluster in the snowball corpus of
 #| label: plot_chord_l3
 #|
 
-chorddiag(
-    m_l3,
-    groupnamePadding = 20,
-    type = "directional"
-)
-
+plot_chord(linkages, "l3")
+plot_chord(linkages_p, "l3")
 ```
