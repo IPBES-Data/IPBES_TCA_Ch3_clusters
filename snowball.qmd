@@ -39,8 +39,18 @@ library(tibble)
 library(networkD3)
 library(tictoc)
 
+library(patchwork)
+
 # devtools::install_github("mattflor/chorddiag")
 library(chorddiag)
+
+gdm_path <- tempfile()
+dir.create(gdm_path)
+on.exit(
+    {
+        unlink(gdm_path, recursive = TRUE)
+    }   
+)
 
 fns <- sapply(
     1:6,
@@ -97,7 +107,7 @@ for (i in grep("cluster", names(cluster), value = TRUE)) {
 ```
 
 
-# Searches
+# Do Searches
 
 ## Setup OpenAlex usage and do Snowballs
 
@@ -247,7 +257,7 @@ saveRDS(cluster, fn)
 
 
 
-# Graphs
+# Create Graphs
 
 ## Create Static Citation Network Graph of the S1 Corpus
 
@@ -303,7 +313,172 @@ lapply(
 toc()
 ```
 
-## The Graphs
+## Create Maps of the S1 Corpus
+
+Create Maps of the first author only
+
+```{r}
+#| label: openalex_maps_fa_S1
+#| eval: true
+#|
+
+tic()
+
+maps <- lapply(
+    grep("cluster_", names(cluster), value = TRUE),
+    function(name) {
+        plot_name <- paste0("map_first_author_", name, "__S1")
+        message("Plotting map ", name, " ...")
+        map <- sapply(
+            cluster[[name]]$snowball_1$nodes$author,
+            function(authors) {
+                if (is.null(names(authors))) {
+                    return(NULL)
+                } else {
+                    authors[["institution_country_code"]][[1]]
+                }
+            }
+        ) |>
+            unlist() |>
+            table(useNA = "no") |>
+            as.data.frame() |>
+            dplyr::rename(
+                iso2c = Var1,
+                n = Freq
+            ) |>
+            dplyr::mutate(
+                log_n_1 = log(n) + 1
+            ) |>
+            IPBES.R::map_country_codes(
+                values = "log_n_1",
+                geodata_path = gdm_path
+            ) +
+            ggplot2::ggtitle(paste(name, "First Author Only"))
+
+        if (length(list.files("figures", pattern = paste0(plot_name, ".*(pdf|png)"))) < 2) {
+            ggplot2::ggsave(
+                file.path("figures", paste0(plot_name, ".pdf")),
+                map,
+                width = 5,
+                height = 2.5
+            )
+            ggplot2::ggsave(
+                file.path("figures", paste0(plot_name, ".png")),
+                map,
+                width = 5,
+                height = 2.5
+            )
+        }
+        return(map)
+    }
+)
+plot_name <- "map_first_author__S1"
+if (length(list.files("figures", pattern = paste0("^", plot_name, ".*(pdf|png)"))) < 2) {
+    map <- patchwork::wrap_plots(
+        plots = maps,
+        ncol = 3
+    )
+    ggplot2::ggsave(
+        file.path("figures", paste0(plot_name, ".pdf")),
+        map,
+        width = 15,
+        height = 5
+    )
+    ggplot2::ggsave(
+        file.path("figures", paste0(plot_name, ".png")),
+        map,
+        width = 15,
+        height = 5
+    )
+}
+rm(map, maps)
+
+toc()
+```
+
+Create Maps of the all authors. All authors are weighted equal for now.
+
+```{r}
+#| label: openalex_maps_aa_S1
+#| eval: true
+#|
+
+tic()
+
+maps <- lapply(
+    grep("cluster_", names(cluster), value = TRUE),
+    function(name) {
+        plot_name <- paste0("map_all_authors_", name, "__S1")
+        message("Plotting map ", name, " ...")
+        map <- sapply(
+            cluster[[name]]$snowball_1$nodes$author,
+            function(authors) {
+                if (is.null(names(authors))) {
+                    return(NULL)
+                } else {
+                    authors[["institution_country_code"]]
+                }
+            }
+        ) |>
+            unlist() |>
+            table(useNA = "no") |>
+            as.data.frame() |>
+            dplyr::rename(
+                iso2c = Var1,
+                n = Freq
+            ) |>
+            dplyr::mutate(
+                log_n_1 = log(n) + 1
+            ) |>
+            IPBES.R::map_country_codes(
+                values = "log_n_1",
+                geodata_path = gdm_path
+            ) +
+            ggplot2::ggtitle(paste(name, "All Authors"))
+
+        if (length(list.files("figures", pattern = paste0(plot_name, ".*(pdf|png)"))) < 2) {
+            ggplot2::ggsave(
+                file.path("figures", paste0(plot_name, ".pdf")),
+                map,
+                width = 5,
+                height = 2.5
+            )
+            ggplot2::ggsave(
+                file.path("figures", paste0(plot_name, ".png")),
+                map,
+                width = 5,
+                height = 2.5
+            )
+        }
+        return(map)
+    }
+)
+plot_name <- "map_all_authors__S1"
+if (length(list.files("figures", pattern = paste0("^", plot_name, ".*(pdf|png)"))) < 2) {
+    map <- patchwork::wrap_plots(
+        plots = maps,
+        ncol = 3
+    )
+    ggplot2::ggsave(
+        file.path("figures", paste0(plot_name, ".pdf")),
+        map,
+        width = 15,
+        height = 5
+    )
+    ggplot2::ggsave(
+        file.path("figures", paste0(plot_name, ".png")),
+        map,
+        width = 15,
+        height = 5
+    )
+}
+rm(map, maps)
+toc()
+```
+
+
+# Results
+## Graphs and Maps
 
 The following interactions are possible in the interactive graphs:
 
@@ -313,52 +488,78 @@ The following interactions are possible in the interactive graphs:
 - clicking on the canvas and move the mouse will move the network
 - clicking on a node and dragging it moves the node
 
+### Overview Maps
+
+#### First Author Only
+
+![](figures/map_first_author__S1.png)
+
+#### All Authors no weighting
+
+![](figures/map_all_authors__S1.png)
+
 ### Cluster 1
+
+![](figures/map_first_author_cluster_1__S1.png)
 
 ![](figures/cluster_1_S1_cited_by_count_by_year.png)
 
-- [Better quality](figures/cluster_1_S1_cited_by_count_by_year.pdf){target=_blank}
+- [Better quality map](figures/map_first_author_cluster_1__S1.pdf){target=_blank}
+- [Better quality cluster](figures/cluster_1_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_1_S1_interactive_network.html){target=_blank}.
 
 ### Cluster 2
 
+![](figures/map_first_author_cluster_2__S1.png)
+
 ![](figures/cluster_2_S1_cited_by_count_by_year.png)
 
-- [Better quality](figures/cluster_2_S1_cited_by_count_by_year.pdf){target=_blank}
+- [Better quality map](figures/map_first_author_cluster_2__S1.pdf){target=_blank}
+- [Better quality cluster](figures/cluster_2_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_2_S1_interactive_network.html){target=_blank}.
 
 ### Cluster 3
 
+![](figures/map_first_author_cluster_3__S1.png)
+
 ![](figures/cluster_3_S1_cited_by_count_by_year.png)
 
-- [Better quality](figures/cluster_3_S1_cited_by_count_by_year.pdf){target=_blank}
+- [Better quality map](figures/map_first_author_cluster_3__S1.pdf){target=_blank}
+- [Better quality cluster](figures/cluster_3_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_3_S1_interactive_network.html){target=_blank}.
 
 ### Cluster 4
 
+![](figures/map_first_author_cluster_4__S1.png)
+
 ![](figures/cluster_4_S1_cited_by_count_by_year.png)
 
-- [Better quality](figures/cluster_4_S1_cited_by_count_by_year.pdf){target=_blank}
+- [Better quality map](figures/map_first_author_cluster_4__S1.pdf){target=_blank}
+- [Better quality cluster](figures/cluster_4_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_4_S1_interactive_network.html){target=_blank}.
 
 ### Cluster 5
 
-![](figures/cluster_5_S1_cited_by_count_by_year.png)
+!![](figures/map_first_author_cluster_5__S1.png)
 
-- [Better quality](figures/cluster_5_S1_cited_by_count_by_year.pdf){target=_blank}
+[](figures/cluster_5_S1_cited_by_count_by_year.png)
+
+- [Better quality map](figures/map_first_author_cluster_5__S1.pdf){target=_blank}
+- [Better quality cluster](figures/cluster_5_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_5_S1_interactive_network.html){target=_blank}.
 
 ### Cluster 6
 
+![](figures/map_first_author_cluster_6__S1.png)
+
 ![](figures/cluster_6_S1_cited_by_count_by_year.png)
 
-- [Better quality](figures/cluster_6_S1_cited_by_count_by_year.pdf){target=_blank}
+- [Better quality map](figures/map_first_author_cluster_6__S1.pdf){target=_blank}
+- [Better quality cluster](figures/cluster_6_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_6_S1_interactive_network.html){target=_blank}.
 
 
-
-
-# Common works between clusters
+## Common works between clusters
 
 This section looks at common works between the keypapers of each cluster as well as the whole corpus as obtained through a first generation snowball search using the provided keyworks.
 
@@ -368,7 +569,7 @@ The links are classifiad using three levels:
 - **in_l2**: (keypaper in `from`) in (snowball in `to`)
 - **in_l3**: (snowball in `from`) in (snowball in `to`)
 
-## Cluster properties
+### Cluster properties
 
 - **n**: number of papers in the snowball corpus
 - **n_kp**: number of keypapers
@@ -378,7 +579,7 @@ IPBES.R::table_dt(data = cluster$links$nodes[, -1])
 ```
 
 
-## Links between clusters
+### Links between clusters
 
 - **from**: cluster which is the cluster in which the papers are
 - **to**: cluster to which the `from` cluster is compared to
@@ -394,7 +595,7 @@ The column `in_l1` shgould be all zeros as the keypapers should only be linked t
 
 
 
-## Links between Clusters
+### Links between Clusters
 
 ```{r}
 #| label: get_linkages
@@ -465,7 +666,7 @@ plot_chord <- function(linkages, level) {
 }
 ```
 
-### Level 1
+#### Level 1
 
 Number of keypapers in one cluster in the keypapers of another cluster.
 
@@ -477,7 +678,7 @@ plot_chord(linkages, "l1")
 plot_chord(linkages_p, "l1")
 ```
 
-### Level 2
+#### Level 2
 
 Number of keypapers in one cluster in the snowball corpus of another cluster.
 
@@ -489,7 +690,7 @@ plot_chord(linkages, "l2")
 plot_chord(linkages_p, "l2")
 ```
 
-### Level 3
+#### Level 3
 
 Number of papers in the snowball corpus in one cluster in the snowball corpus of another cluster.
 
