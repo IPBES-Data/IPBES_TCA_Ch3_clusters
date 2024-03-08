@@ -109,10 +109,46 @@ for (i in grep("cluster", names(cluster), value = TRUE)) {
 
 # Do Searches
 
-## Setup OpenAlex usage and do Snowballs
+## Get Generell key-works and Snowball
 
 ```{r}
-#| label: openalex_searches
+#| label: get_key_works_snowball
+#| 
+
+fn <- file.path ("data", "key_works.rds")
+if (exists(fn)){
+    key_works <- readRDS(fn)
+} else {
+    dois <- read.csv(file.path("input", "key_papers", "key-paper.csv"))$DOI
+    key_works <- oa_fetch(
+            entity = "works",
+            doi = dois,
+            verbose = FALSE
+        )
+    saveRDS(key_works, fn)
+}
+
+ids <- openalexR:::shorten_oaid(key_works$id)
+
+fn <- file.path("data", "snowball.rds")
+if (file.exists(fn)) {
+    snowball <- readRDS(fn)
+} else {
+    snowball <- oa_snowball(
+        identifier = ids,
+        verbose = FALSE
+    )
+    saveRDS(snowball, fn)
+}
+
+flat_snow <- snowball2df(snowball) |>
+    tibble::as_tibble()
+```
+
+## Get Cluster key-works and  Snowballs
+
+```{r}
+#| label: get_clusters_works_snowball
 #|
 tic()
 fn <- file.path("data", "cluster.rds")
@@ -216,10 +252,38 @@ if (file.exists(fn)) {
 
     saveRDS(cluster, fn)
 }
+
+
+key_works_cluster <- lapply(
+        1:(length(cluster) - 1),
+        function(i) {
+            cluster[[i]]$key_works
+        }
+    ) |>
+        do.call(what = rbind) |>
+        dplyr::distinct(id, .keep_all = TRUE)
+
+snowball_cluster <- list(
+    nodes = lapply(
+        1:(length(cluster) - 1),
+        function(i) {
+            cluster[[i]]$snowball_1$nodes
+        }
+    ) |>
+        do.call(what = rbind) |>
+        dplyr::distinct(id, .keep_all = TRUE),
+    edges = lapply(
+        1:(length(cluster) - 1),
+        function(i) {
+            cluster[[i]]$snowball_1$edges
+        }
+    ) |>
+        do.call(what = rbind) |>
+        dplyr::distinct()
+)
+
 toc()
 ```
-
-
 
 ## Do second snowball search (S2)
 
@@ -700,4 +764,43 @@ Number of papers in the snowball corpus in one cluster in the snowball corpus of
 
 plot_chord(linkages, "l3")
 plot_chord(linkages_p, "l3")
+```
+
+## Common works between Cluster and General corpus
+
+### Overlab between Cluster and General key-papers and corpi
+
+Here I will show the overlap between the combined cluster corpi and the General corpus based on the six key paper.
+
+|                                | Cluster                               | General                           | overlap                                                                                      |
+|--------------------------------|---------------------------------------|-----------------------------------|----------------------------------------------------------------------------------------------| 
+| <nobr>(keypaper <-> keypaper)  | `r length(key_works_cluster$id)`      |    `r length(key_works$id)`       |    `r sum(key_works_cluster$id       %in% gsub("^https://openalex.org/", "", key_works$id))` |
+| <nobr>(keypaper <-> paper)     | `r length(key_works_cluster$id)`      |    `r length(snowball$nodes$id)`  |    `r sum(key_works_cluster$id       %in% snowball$nodes$id)`                                |
+| <nobr>(paper <-> keypaper)     | `r length(snowball_cluster$nodes$id)` |    `r length(key_works$id)`       |    `r sum(snowball_cluster$nodes$id %in% gsub("^https://openalex.org/", "", key_works$id))`  |
+| <nobr>(paper <-> paper)        | `r length(snowball_cluster$nodes$id)` |    `r length(snowball$node$id)`   |    `r sum(snowball_cluster$nodes$id %in% snowball$nodes$id)`                                 |
+
+
+#### (keypaper <-> keypaper)
+
+```{r}
+key_works_cluster[key_works_cluster$id %in% gsub("^https://openalex.org/", "", key_works$id), ] |>
+    IPBES.R::table_dt(fixedColumns = NULL)
+```
+
+#### (keypaper <-> paper)
+```{r}
+key_works_cluster[key_works_cluster$id %in% snowball$nodes$id, ] |>
+    IPBES.R::table_dt(fixedColumns = NULL)
+```
+
+#### (paper <-> keypaper)
+```{r}
+snowball_cluster$nodes[snowball_cluster$nodes$id %in% gsub("^https://openalex.org/", "", key_works$id), ] |>
+    IPBES.R::table_dt(fixedColumns = NULL)
+```
+
+#### (paper <-> paper)
+```{r}
+snowball_cluster$nodes[snowball_cluster$nodes$id %in% snowball$nodes$id, ] |>
+    IPBES.R::table_dt(fixedColumns = NULL)
 ```
