@@ -101,6 +101,7 @@ cluster <- lapply(
     fns,
     function(fn) {
         list(
+            timestamp = Sys.time(),
             fn = fn,
             dois = read.csv(fn)$DOI
         )
@@ -193,32 +194,27 @@ if (file.exists(fn)) {
         cluster,
         function(cl) {
             message("Processing ", cl$fn, " ...")
-            message("|- Fetching works...")
-            key_works <- oa_fetch(
+            message("|- Fetching works ...")
+            cl$key_works <- oa_fetch(
                 entity = "works",
                 doi = cl$dois,
                 verbose = FALSE
             )
-            key_works$id <- gsub(
+            cl$key_works$id <- gsub(
                 pattern = "https://openalex.org/",
                 replacement = "",
-                key_works$id
+                cl$key_works$id
             )
-            message("|- Snowballing works...")
-            snowball <- oa_snowball(
-                identifier = openalexR:::shorten_oaid(key_works$id),
+            message("|- Snowballing works ...")
+            cl$snowball_1 <- oa_snowball(
+                identifier = openalexR:::shorten_oaid(cl$key_works$id),
                 verbose = FALSE
             )
-            message("|- Converting to tibble...")
-            snowball_df <- snowball2df(snowball) |>
+            message("|- Converting to tibble ...")
+            cl$snowball_1_df <- snowball2df(cl$snowball_1) |>
                 as_tibble()
             message("\n")
-            list(
-                cl,
-                key_works = key_works,
-                snowball_1 = snowball,
-                snowball_1_df = snowball_df
-            )
+            return(cl)
         }
     )
 
