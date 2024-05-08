@@ -15,9 +15,12 @@ format:
             gutter-width: 1.5rem   
 params:
     key_paper: "cX_key-paper.csv"
+    gdm_path: !expr file.path('data', 'gdm')
 ---
 
 # Back to [Readme](https://IPBES-Data.github.io/IPBES_BBA_Ch4_Snowball_Pilot_1/)
+
+Waiting for new key-papers
 
 # Setup
 ```{r}
@@ -32,6 +35,7 @@ knitr::opts_chunk$set(message = NA)
 library(IPBES.R)
 library(openalexR)
 library(dplyr)
+library(readxl)
 
 library(tibble)
 # library(dplyr)
@@ -44,13 +48,7 @@ library(patchwork)
 # devtools::install_github("mattflor/chorddiag")
 library(chorddiag)
 
-gdm_path <- tempfile()
-dir.create(gdm_path)
-on.exit(
-    {
-        unlink(gdm_path, recursive = TRUE)
-    }   
-)
+dir.create(params$gdm_path, showWarnings = FALSE)
 
 fns <- sapply(
     1:6,
@@ -63,6 +61,42 @@ fns <- sapply(
     }
 )
 
+###########
+## Update `cX_key-paper.csv` from `TCA_Ch3_DOIs_Dataset_Theories_3_May_2024.xlsx`
+## This needs to be run manually
+
+if (FALSE) {
+    all <- readxl::read_excel(file.path("input", "key_papers", "TCA_Ch3_DOIs_Dataset_Theories_3_May_2024.xlsx"))
+
+    cluster <- names(all)[11:16]
+
+    sapply(
+        1:6,
+        function(i) {
+            all |>
+                dplyr::filter(.data[[cluster[[i]]]] == 1) |>
+                dplyr::select("DOI", "Authors", "Year", "Title") |>
+                dplyr::filter(!is.na(DOI)) |>
+                dplyr::mutate(
+                    DOI = gsub(
+                        pattern = "https://doi.org/",
+                        replacement = "",
+                        x = DOI
+                    )
+                ) |>
+                write.csv(
+                    file = fns[i],
+                    row.names = FALSE
+                )
+        }
+    ) |>
+        invisible()
+
+    rm(all, cluster)
+}
+
+##
+###########
 cluster <- lapply(
     fns,
     function(fn) {
@@ -113,18 +147,18 @@ for (i in grep("cluster", names(cluster), value = TRUE)) {
 
 ```{r}
 #| label: get_key_works_snowball
-#| 
+#|
 
-fn <- file.path ("data", "key_works.rds")
-if (exists(fn)){
+fn <- file.path("data", "key_works.rds")
+if (exists(fn)) {
     key_works <- readRDS(fn)
 } else {
     dois <- read.csv(file.path("input", "key_papers", "key-paper.csv"))$DOI
     key_works <- oa_fetch(
-            entity = "works",
-            doi = dois,
-            verbose = FALSE
-        )
+        entity = "works",
+        doi = dois,
+        verbose = FALSE
+    )
     saveRDS(key_works, fn)
 }
 
@@ -255,13 +289,13 @@ if (file.exists(fn)) {
 
 
 key_works_cluster <- lapply(
-        1:(length(cluster) - 1),
-        function(i) {
-            cluster[[i]]$key_works
-        }
-    ) |>
-        do.call(what = rbind) |>
-        dplyr::distinct(id, .keep_all = TRUE)
+    1:(length(cluster) - 1),
+    function(i) {
+        cluster[[i]]$key_works
+    }
+) |>
+    do.call(what = rbind) |>
+    dplyr::distinct(id, .keep_all = TRUE)
 
 snowball_cluster <- list(
     nodes = lapply(
@@ -340,9 +374,12 @@ lapply(
         plot_name <- paste0(name, "_S1")
         if (length(list.files("figures", pattern = paste0(plot_name, ".*(pdf|png)"))) < 4) {
             message("Plotting ", name, " ...")
-            tmp <- plot_snowball(
-                cluster[[name]]$snowball_1,
-                name = plot_name
+            try(
+                plot_snowball(
+                    cluster[[name]]$snowball_1,
+                    name = plot_name
+                ),
+                silent = FALSE
             )
         }
     }
@@ -370,7 +407,8 @@ lapply(
                 snowball = cluster[[name]]$snowball_1,
                 key_works = cluster[[name]]$key_works,
                 file = file.path("figures", plot_name)
-        )
+            )
+        }
     }
 )
 
@@ -415,19 +453,19 @@ maps <- lapply(
             ) |>
             IPBES.R::map_country_codes(
                 values = "log_n_1",
-                geodata_path = gdm_path
+                geodata_path = params$gdm_path
             ) +
             ggplot2::ggtitle(paste(name, "First Author Only"))
 
-        if (length(list.files("figures", pattern = paste0(plot_name, ".*(pdf|png)"))) < 2) {
+        if (length(list.files("maps", pattern = paste0(plot_name, ".*(pdf|png)"))) < 2) {
             ggplot2::ggsave(
-                file.path("figures", paste0(plot_name, ".pdf")),
+                file.path("maps", paste0(plot_name, ".pdf")),
                 map,
                 width = 5,
                 height = 2.5
             )
             ggplot2::ggsave(
-                file.path("figures", paste0(plot_name, ".png")),
+                file.path("maps", paste0(plot_name, ".png")),
                 map,
                 width = 5,
                 height = 2.5
@@ -436,20 +474,21 @@ maps <- lapply(
         return(map)
     }
 )
+
 plot_name <- "map_first_author__S1"
-if (length(list.files("figures", pattern = paste0("^", plot_name, ".*(pdf|png)"))) < 2) {
+if (length(list.files("maps", pattern = paste0("^", plot_name, ".*(pdf|png)"))) < 2) {
     map <- patchwork::wrap_plots(
         plots = maps,
         ncol = 3
     )
     ggplot2::ggsave(
-        file.path("figures", paste0(plot_name, ".pdf")),
+        file.path("maps", paste0(plot_name, ".pdf")),
         map,
         width = 15,
         height = 5
     )
     ggplot2::ggsave(
-        file.path("figures", paste0(plot_name, ".png")),
+        file.path("maps", paste0(plot_name, ".png")),
         map,
         width = 15,
         height = 5
@@ -496,19 +535,19 @@ maps <- lapply(
             ) |>
             IPBES.R::map_country_codes(
                 values = "log_n_1",
-                geodata_path = gdm_path
+                geodata_path = params$gdm_path
             ) +
             ggplot2::ggtitle(paste(name, "All Authors"))
 
-        if (length(list.files("figures", pattern = paste0(plot_name, ".*(pdf|png)"))) < 2) {
+        if (length(list.files("maps", pattern = paste0(plot_name, ".*(pdf|png)"))) < 2) {
             ggplot2::ggsave(
-                file.path("figures", paste0(plot_name, ".pdf")),
+                file.path("maps", paste0(plot_name, ".pdf")),
                 map,
                 width = 5,
                 height = 2.5
             )
             ggplot2::ggsave(
-                file.path("figures", paste0(plot_name, ".png")),
+                file.path("maps", paste0(plot_name, ".png")),
                 map,
                 width = 5,
                 height = 2.5
@@ -518,19 +557,19 @@ maps <- lapply(
     }
 )
 plot_name <- "map_all_authors__S1"
-if (length(list.files("figures", pattern = paste0("^", plot_name, ".*(pdf|png)"))) < 2) {
+if (length(list.files("maps", pattern = paste0("^", plot_name, ".*(pdf|png)"))) < 2) {
     map <- patchwork::wrap_plots(
         plots = maps,
         ncol = 3
     )
     ggplot2::ggsave(
-        file.path("figures", paste0(plot_name, ".pdf")),
+        file.path("maps", paste0(plot_name, ".pdf")),
         map,
         width = 15,
         height = 5
     )
     ggplot2::ggsave(
-        file.path("figures", paste0(plot_name, ".png")),
+        file.path("maps", paste0(plot_name, ".png")),
         map,
         width = 15,
         height = 5
@@ -556,69 +595,69 @@ The following interactions are possible in the interactive graphs:
 
 #### First Author Only
 
-![](figures/map_first_author__S1.png)
+![](maps/map_first_author__S1.png)
 
 #### All Authors no weighting
 
-![](figures/map_all_authors__S1.png)
+![](maps/map_all_authors__S1.png)
 
 ### Cluster 1
 
-![](figures/map_first_author_cluster_1__S1.png)
-
+![](maps/map_first_author_cluster_1__S1.png)
+Ach so. 
 ![](figures/cluster_1_S1_cited_by_count_by_year.png)
 
-- [Better quality map](figures/map_first_author_cluster_1__S1.pdf){target=_blank}
+- [Better quality map](maps/map_first_author_cluster_1__S1.pdf){target=_blank}
 - [Better quality cluster](figures/cluster_1_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_1_S1_interactive_network.html){target=_blank}.
 
 ### Cluster 2
 
-![](figures/map_first_author_cluster_2__S1.png)
+![](maps/map_first_author_cluster_2__S1.png)
 
 ![](figures/cluster_2_S1_cited_by_count_by_year.png)
 
-- [Better quality map](figures/map_first_author_cluster_2__S1.pdf){target=_blank}
+- [Better quality map](maps/map_first_author_cluster_2__S1.pdf){target=_blank}
 - [Better quality cluster](figures/cluster_2_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_2_S1_interactive_network.html){target=_blank}.
 
 ### Cluster 3
 
-![](figures/map_first_author_cluster_3__S1.png)
+![](maps/map_first_author_cluster_3__S1.png)
 
 ![](figures/cluster_3_S1_cited_by_count_by_year.png)
 
-- [Better quality map](figures/map_first_author_cluster_3__S1.pdf){target=_blank}
+- [Better quality map](maps/map_first_author_cluster_3__S1.pdf){target=_blank}
 - [Better quality cluster](figures/cluster_3_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_3_S1_interactive_network.html){target=_blank}.
 
 ### Cluster 4
 
-![](figures/map_first_author_cluster_4__S1.png)
+![](maps/map_first_author_cluster_4__S1.png)
 
 ![](figures/cluster_4_S1_cited_by_count_by_year.png)
 
-- [Better quality map](figures/map_first_author_cluster_4__S1.pdf){target=_blank}
+- [Better quality map](maps/map_first_author_cluster_4__S1.pdf){target=_blank}
 - [Better quality cluster](figures/cluster_4_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_4_S1_interactive_network.html){target=_blank}.
 
 ### Cluster 5
 
-!![](figures/map_first_author_cluster_5__S1.png)
+!![](maps/map_first_author_cluster_5__S1.png)
 
 [](figures/cluster_5_S1_cited_by_count_by_year.png)
 
-- [Better quality map](figures/map_first_author_cluster_5__S1.pdf){target=_blank}
+- [Better quality map](maps/map_first_author_cluster_5__S1.pdf){target=_blank}
 - [Better quality cluster](figures/cluster_5_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_5_S1_interactive_network.html){target=_blank}.
 
 ### Cluster 6
 
-![](figures/map_first_author_cluster_6__S1.png)
+![](maps/map_first_author_cluster_6__S1.png)
 
 ![](figures/cluster_6_S1_cited_by_count_by_year.png)
 
-- [Better quality map](figures/map_first_author_cluster_6__S1.pdf){target=_blank}
+- [Better quality map](maps/map_first_author_cluster_6__S1.pdf){target=_blank}
 - [Better quality cluster](figures/cluster_6_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_6_S1_interactive_network.html){target=_blank}.
 
@@ -736,7 +775,7 @@ Number of keypapers in one cluster in the keypapers of another cluster.
 
 ```{r}
 #| label: plot_chord_l1
-#| 
+#|
 
 plot_chord(linkages, "l1")
 plot_chord(linkages_p, "l1")
