@@ -97,6 +97,7 @@ if (FALSE) {
 
 ##
 ###########
+
 cluster <- lapply(
     fns,
     function(fn) {
@@ -237,6 +238,56 @@ if (file.exists(fn)) {
         stringsAsFactors = FALSE
     )
 
+    all_kps <- lapply(
+        cluster,
+        function(cl) {
+            cl$key_works$id
+        }
+    )
+
+    all_ids <- lapply(
+        cluster,
+        function(cl) {
+            cl$snowball_1$nodes$id
+        }
+    )
+
+    nodes$only_l1 <- sapply(
+        1:nrow(nodes),
+        function(i) {
+            id_from <- cluster[[nodes$id[i]]]$key_works$id
+            nms <- grep(nodes$id[i], names(all_ids), value = TRUE, invert = TRUE)
+            id_to <- all_kps[nms] |>
+                unlist() |>
+                unique()
+            sum(!(id_from %in% id_to))
+        }
+    )
+
+    nodes$only_l2 <- sapply(
+        1:nrow(nodes),
+        function(i) {
+            id_from <- cluster[[nodes$id[i]]]$key_works$id
+            nms <- grep(nodes$id[i], names(all_ids), value = TRUE, invert = TRUE)
+            id_to <- all_ids[nms] |>
+                unlist() |>
+                unique()
+            sum(!(id_from %in% id_to))
+        }
+    )
+
+    nodes$only_l3 <- sapply(
+        1:nrow(nodes),
+        function(i) {
+            id_from <- cluster[[nodes$id[i]]]$snowball_1$nodes$id
+            nms <- grep(nodes$id[i], names(all_ids), value = TRUE, invert = TRUE)
+            id_to <- all_ids[nms] |>
+                unlist() |>
+                unique()
+            sum(!(id_from %in% id_to))
+        }
+    )
+
     edges <- expand.grid(
         names(cluster),
         names(cluster),
@@ -274,6 +325,7 @@ if (file.exists(fn)) {
                 sum()
         }
     )
+
 
     cluster$links <- list(
         nodes = nodes,
@@ -314,41 +366,6 @@ snowball_cluster <- list(
 
 toc()
 ```
-
-## Do second snowball search (S2)
-
-For the second snowball search (S2) we use the corpus identified by S1 as the key-papers.
-
-This needs to be enabled (`eval = false` needs to be changed to `eval = true` in the following code block) as the resulting data file is to large for github and running of the snowball search
-takes several hours.
-
-```{r}
-#| label: openalex_snowball_2
-#| eval: false
-
-cluster <- lapply(
-    cluster,
-    function(cl) {
-        message("Processing ", cl$fn, " ...")
-        message("|- Snowballing works 2nd gen...")
-        snowball <- oa_snowball(
-            identifier = cl$snowball_1$nodes$id,
-            verbose = FALSE
-        )
-        message("|- Converting to tibble...")
-        snowball_df <- snowball2df(snowball) |>
-            as_tibble()
-        message("\n")
-        list(
-            cl,
-            snowball_2 = snowball,
-            snowball_2_df = snowball_df
-        )
-    }
-)
-saveRDS(cluster, fn)
-```
-
 
 
 # Create Graphs
@@ -699,36 +716,52 @@ The column `in_l1` shgould be all zeros as the keypapers should only be linked t
 ```{r}
 #| label: get_linkages
 #| eval: true
-#|
 
-n_clust <- data.frame(
-    from = cluster$links$nodes$id,
-    to = cluster$links$nodes$id,
-    in_l1 = cluster$links$nodes$n_kp,
-    in_l2 = cluster$links$nodes$n_kp,
-    in_l3 = cluster$links$nodes$n
+
+# cluster <- readRDS(file.path("data", "cluster.rds"))
+
+
+linkages <- rbind(
+    cluster$links$edges,
+    data.frame(
+        from = cluster$links$nodes$id,
+        to = cluster$links$nodes$id,
+        in_l1 = cluster$links$nodes$only_l1,
+        in_l2 = cluster$links$nodes$only_l2,
+        in_l3 = cluster$links$nodes$only_l3
+    )
 ) |>
-    select(from, in_l1, in_l2, in_l3) |>
-    dplyr::rename(n_l1 = in_l1, n_l2 = in_l2, n_l3 = in_l3)
+    dplyr::arrange(from, to)
 
-linkages <- n_clust |>
-    merge(x = cluster$links$edges, by = "from") |>
-    group_by(from) |>
-    summarize(
-        in_l1 = unique(n_l1) - sum(in_l1),
-        in_l2 = unique(n_l2) - sum(in_l2),
-        in_l3 = unique(n_l3) - sum(in_l3)
+
+
+# linkages <- n_clust |>
+#     merge(
+#         x = cluster$links$edges,
+#         by = "from"
+#     ) |>
+#     group_by(
+#         from
+#     ) |>
+#     summarize(
+#         in_l1 = unique(n_l1) - sum(in_l1),
+#         in_l2 = unique(n_l2) - sum(in_l2),
+#         in_l3 = unique(n_l3) - sum(in_l3)
+#     ) |>
+#     ungroup() |>
+#     mutate(to = from) |>
+#     relocate(to, .after = "from") |>
+#     rbind(cluster$links$edges)
+
+linkages_p <- linkages |>
+    dplyr::group_by(
+        from
     ) |>
-    ungroup() |>
-    mutate(to = from) |>
-    relocate(to, .after = "from") |>
-    rbind(cluster$links$edges)
-
-linkages_p <- merge(
-    linkages,
-    n_clust,
-    by = "from"
-) |>
+    mutate(
+        n_l1 = sum(in_l1),
+        n_l2 = sum(in_l2),
+        n_l3 = sum(in_l3)
+    ) |>
     mutate(
         in_l1 = in_l1 / n_l1,
         in_l2 = in_l2 / n_l2,
@@ -736,15 +769,41 @@ linkages_p <- merge(
         n_l1 = NULL,
         n_l2 = NULL,
         n_l3 = NULL
-    ) |>
-    as_tibble()
+    )
 
+# linkages_p <- merge(
+#     linkages,
+#     n_clust,
+#     by = "from"
+# ) |>
+#     mutate(
+#         in_l1 = in_l1 / n_l1,
+#         in_l2 = in_l2 / n_l2,
+#         in_l3 = in_l3 / n_l3,
+#         n_l1 = NULL,
+#         n_l2 = NULL,
+#         n_l3 = NULL
+#     ) |>
+#     as_tibble()
 
 ####
 
-plot_chord <- function(linkages, level) {
+plot_chord <- function(
+    linkages,
+    level,
+    equal_angles = FALSE,
+    showTicks =
+        TRUE,
+    groupnamePadding = 50,
+    margin = 150,
+    ...) {
     m <- linkages |>
-        select(from, to, contains(level)) |>
+        select(
+            from,
+            to,
+            contains(level)
+        ) |>
+        dplyr::arrange(from, to) |>
         tidyr::pivot_wider(
             names_from = to,
             values_from = contains(level)
@@ -756,10 +815,55 @@ plot_chord <- function(linkages, level) {
     m[] <- as.numeric(m[])
     dimnames(m)[[1]] <- rown
 
-    cd <- chorddiag(
+    if (equal_angles) {
+        m <- m / rowSums(m)
+    }
+
+    rownames(m) <- dplyr::case_match(
+        rownames(m),
+        "cluster_1" ~ "Science and Technology",
+        "cluster_2" ~ "Knowledge co-creation",
+        "cluster_3" ~ "Systems",
+        "cluster_4" ~ "Inner Transformation",
+        "cluster_5" ~ "Empowerrment",
+        "cluster_6" ~ "Structural"
+    )
+    colnames(m) <- dplyr::case_match(
+        colnames(m),
+        "cluster_1" ~ "Science and Technology",
+        "cluster_2" ~ "Knowledge co-creation",
+        "cluster_3" ~ "Systems",
+        "cluster_4" ~ "Inner Transformation",
+        "cluster_5" ~ "Empowerrment",
+        "cluster_6" ~ "Structural"
+    )
+
+    groupColors <- c(
+        "#D46746",
+        "#E69A6A",
+        "#E6C540",
+        "#B5C788",
+        "#2DB3B0",
+        "#A693B5"
+    )
+
+    # groupColors <- c(
+    #     grDevices::rgb(red = .87, green = 0.45, blue = 0.33),
+    #     grDevices::rgb(red = .86, green = 0.64, blue = 0.48),
+    #     grDevices::rgb(red = .90, green = 0.80, blue = 0.39),
+    #     grDevices::rgb(red = .74, green = 0.78, blue = 0.59),
+    #     grDevices::rgb(red = .41, green = 0.70, blue = 0.69),
+    #     grDevices::rgb(red = .64, green = 0.60, blue = 0.69)
+    # )
+
+    cd <- chorddiag::chorddiag(
         m,
-        groupnamePadding = 20,
-        type = "directional"
+        groupnamePadding = groupnamePadding,
+        showTicks = showTicks,
+        type = "directional", ,
+        margin = margin,
+        groupColors = groupColors,
+        ...
     )
     return(cd)
 }
@@ -797,8 +901,16 @@ Number of papers in the snowball corpus in one cluster in the snowball corpus of
 #| label: plot_chord_l3
 #|
 
-plot_chord(linkages, "l3")
-plot_chord(linkages_p, "l3")
+p <- plot_chord(linkages, "l3", margin = 250)
+htmlwidgets::saveWidget(p, file = file.path("figures", "common_l3.html"), selfcontained = TRUE)
+unlink(file.path("figures", "common_l3_files"), recursive = TRUE)
+p
+
+p <- plot_chord(linkages, "l3", equal_angles = TRUE, showTicks = FALSE, groupnamePadding = 5)
+htmlwidgets::saveWidget(p, file = file.path("figures", "common_l3_equal.html"), selfcontained = TRUE)
+unlink(file.path("figures", "common_l3_equal_files"), recursive = TRUE)
+p
+
 ```
 
 ## Common works between Cluster and General corpus
@@ -839,3 +951,100 @@ snowball_cluster$nodes[snowball_cluster$nodes$id %in% gsub("^https://openalex.or
 snowball_cluster$nodes[snowball_cluster$nodes$id %in% snowball$nodes$id, ] |>
     IPBES.R::table_dt(fixedColumns = NULL)
 ```
+
+## Approaches -> Theories graph
+
+```{r}
+data <- read.csv(file.path("input", "T&F of TC from CA - chapter 3 - All theories from CA coded.csv"))[c(6, 11:16)]
+names(data) <- c(
+    "Theory",
+    "1 Science and Technology",
+    "2. Knowledge co-creation",
+    "3. Systems",
+    "4. Inner Transformation",
+    "5. Empowerment",
+    "6. Structural"
+)
+
+nodes <- data.frame(
+    name = c(
+        names(data)[2:7],
+        data$Theory |> unique()
+    )
+)
+
+links <- lapply(
+    2:7,
+    function(i) {
+        data |>
+            dplyr::mutate(
+                source = names(data)[i],
+            ) |>
+            dplyr::select(
+                source = source,
+                target = Theory,
+                level = names(data)[i],
+            )
+    }
+) |>
+    do.call(what = rbind) |>
+    dplyr::mutate(
+        source = factor(
+            source,
+            levels = nodes$name
+        ) |>
+            as.numeric(),
+        source = as.numeric(source) - 1,
+        target = factor(
+            target,
+            levels = nodes$name
+        ) |>
+            as.numeric(),
+        target = as.numeric(target) - 1,
+        value = 1
+    )
+
+library(networkD3)
+library(webwidgets)
+library(webshot)
+
+bn <- file.path("figures", "approaches_theories_1")
+sankeyNetwork(
+    Links = links |> dplyr::filter(level == 1),
+    Nodes = nodes,
+    Source = "source",
+    Target = "target",
+    Value = "value",
+    NodeID = "name"
+) |>
+htmlwidgets::saveWidget(
+    file = paste0(bn, ".html"), 
+    selfcontained = TRUE
+)
+webshot::webshot(
+    url = paste0(bn, ".html"),
+    file = paste0(bn, ".pdf")
+)
+unlink(paste0(bn, "_files"), recursive = TRUE)
+
+bn <- file.path("figures", "approaches_theories_1_2")
+sankeyNetwork(
+    Links = links |> dplyr::filter(!is.na(level)),
+    Nodes = nodes,
+    Source = "source",
+    Target = "target",
+    Value = "value",
+    NodeID = "name"
+) |>
+htmlwidgets::saveWidget(
+    file = paste0(bn, ".html"), 
+    selfcontained = TRUE
+)
+unlink(paste0(bn, "_files"), recursive = TRUE)
+webshot::webshot(
+    url = paste0(bn, ".html"),
+    file = paste0(bn, ".pdf")
+)
+
+```
+
