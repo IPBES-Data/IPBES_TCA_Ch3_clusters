@@ -48,6 +48,14 @@ library(patchwork)
 # devtools::install_github("mattflor/chorddiag")
 library(chorddiag)
 
+
+if (!require("plantuml")) {
+    install.packages("plantuml", repos = c("https://rkrug.r-universe.dev", "https://cran.r-project.org"))
+    library(plantuml)
+}
+plantuml::server_set("remote")
+
+
 dir.create(params$gdm_path, showWarnings = FALSE)
 
 fns <- sapply(
@@ -120,6 +128,49 @@ approach_colors <- c(
     "#A693B5"
 )
 ```
+
+## Schematic Overview
+
+```{r}
+#| label: ch3_clusters_overview_plantuml
+#|
+
+basename <- file.path("tca_corpus", "figures")
+
+nf <- list.files(
+    path = dirname(basename),
+    pattern = basename(basename)
+) |>
+    length()
+
+if (nf < 3) {
+    puml <- readLines(file.path("input", "tca_ch3_clusters.plantuml")) |>
+        paste(collapse = "\n") |>
+        plantuml::plantuml()
+
+    puml |>
+        plantuml::get_graph(
+            file = file.path("figures", "tca_ch3_clusters.pdf")
+        )
+
+    puml |>
+        plantuml::get_graph(
+            file = file.path("figures", "tca_ch3_clusters.svg")
+        )
+
+    puml |>
+        plantuml::get_graph(
+            file = file.path("figures", "tca_ch3_clusters.png")
+        )
+}
+```
+
+![Schematic overview of the TCA Chapter 3 Approaches (cluster) snowball searches](figures/tca_ch3_clusters.svg)
+
+- To download png, [click here](figures/tca_ch3_clusters.png){target="_blank"}.
+- To download high resolution pdf, [click here](figures/tca_ch3_clusters.pdf){target="_blank"}.
+- To download high resolution svg, [click here](figures/tca_ch3_clusters.svg){target="_blank"}.
+
 
 # Download of Data Files from Zenodo
 

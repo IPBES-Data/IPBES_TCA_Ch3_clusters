@@ -1,0 +1,92 @@
+@startuml TCA_Corpus
+
+cloud "<size:24>[[https://openalex.org OpenAlex]]" as openalex #pink
+
+rectangle "General Snowball" {
+    action "Snowball Key Papers [[https://github.com/IPBES-Data/IPBES_TCA_Ch3_clusters/raw/DMR_final/input/keypapers.csv keypapers.csv]]" as st_gen
+    openalex --> st_gen
+    database "General Approaches snowball corpus\n----\n" as cp_gen
+    st_gen --> cp_gen
+}
+
+file "Citation Graph\n---\nEqual Size\n---\n**Filename**: [[https://github.com/IPBES-Data/IPBES_TCA_Ch3_clusters/raw/DMR_final/figures/snowball_cited_by_count_by_year.pdf snowball_cited_by_count_by_year.pdf]]" as figure_general_citation_equal #LightCoral
+cp_gen --> figure_general_citation_equal
+
+''''''''''''''''
+
+rectangle "Approach 1" {
+    action "Snowball Key Papers [[https://github.com/IPBES-Data/IPBES_TCA_Ch3_clusters/raw/DMR_final/input/key_papers/c1_key-paper.csv Approach 1]]" as st_ap1
+    openalex --> st_ap1
+    database "Approach 1 snowball corpus\n----\n" as cp_ap1
+    st_ap1 --> cp_ap1
+}    
+ 
+rectangle "Approach 2" {
+    action "Snowball Key Papers [[https://github.com/IPBES-Data/IPBES_TCA_Ch3_clusters/raw/DMR_final/input/key_papers/c2_key-paper.csv Approach 2]]" as st_ap2
+    openalex --> st_ap2
+    database "Approach 2 snowball corpus\n----\n" as cp_ap2
+    st_ap2 --> cp_ap2
+}
+ 
+rectangle "Approach 3" {
+    action "Snowball Key Papers [[https://github.com/IPBES-Data/IPBES_TCA_Ch3_clusters/raw/DMR_final/input/key_papers/c3_key-paper.csv Approach 3]]" as st_ap3
+    openalex --> st_ap3
+    database "Approach 3 snowball corpus\n----\n" as cp_ap3
+    st_ap3 --> cp_ap3
+}
+ 
+rectangle "Approach 4" {
+    action "Snowball Key Papers [[https://github.com/IPBES-Data/IPBES_TCA_Ch3_clusters/raw/DMR_final/input/key_papers/c4_key-paper.csv Approach 4]]" as st_ap4
+    openalex --> st_ap4
+    database "Approach 4 snowball corpus\n----\n" as cp_ap4
+    st_ap4 --> cp_ap4
+}
+ 
+rectangle "Approach 5" {
+    action "Snowball Key Papers [[https://github.com/IPBES-Data/IPBES_TCA_Ch3_clusters/raw/DMR_final/input/key_papers/c5_key-paper.csv Approach 5]]" as st_ap5
+    openalex --> st_ap5
+    database "Approach 5 snowball corpus\n----\n" as cp_ap5
+    st_ap5 --> cp_ap5
+}
+ 
+rectangle "Approach 6" {
+    action "Snowball Key Papers [[https://github.com/IPBES-Data/IPBES_TCA_Ch3_clusters/raw/DMR_final/input/key_papers/c6_key-paper.csv Approach 6]]" as st_ap6
+    openalex --> st_ap6
+    database "Approach 6 snowball corpus\n----\n" as cp_ap6
+    st_ap6 --> cp_ap6
+}
+ 
+process "determine Overlap between Approaches" as overlap
+cp_ap1 --> overlap
+cp_ap2 --> overlap
+cp_ap3 --> overlap
+cp_ap4 --> overlap
+cp_ap5 --> overlap
+cp_ap6 --> overlap
+
+file "Overlap Data\n---\n**Filename**: [[https://doi.org/10.5281/zenodo.11352062 cluster.rds]]" as file_overlap #yellow
+overlap --> file_overlap
+
+file "Interactive Circular Graph\n---\nEqual Size\n---\n**Filename**: [[https://github.com/IPBES-Data/IPBES_TCA_Ch3_clusters/raw/DMR_final/figures/common_l3_equal.html common_l3_equal.html]]" as figure_overlap_equal #LightCoral
+overlap --> figure_overlap_equal
+
+file "Interactive Circular Graph\n---\nSize relative to number of works\n---\n**Filename**: [[https://github.com/IPBES-Data/IPBES_TCA_Ch3_clusters/raw/DMR_final/figures/common_l3.html common_l3_equal.html]]" as figure_overlap #LightCoral
+overlap --> figure_overlap
+
+
+' LEGEND
+newpage
+rectangle Legend {
+    cloud "Source in the Cloud\n---\n- OpenAlex\n- ..." #pink
+    database "Downloaded Corpus\n---\n**Format**: parquet dataset" #yellow
+    database "Downloaded Intermediate Corpus\n---\n**Format**: parquet dataset"
+    action "Action related to corpus\n---\n- Search Terms\n- Crossing corpuses\n- ..."
+    process "Analysis related process\n---\n- extract numbers\n- ..."
+    storage "Numeric results"
+    file "Result saved as File\n---\nFile Format\n---\n- tables\n- figures\n- maps\n- ..."
+    file "Result Data\n---\n**Filename**: ..." #Yellow
+    file "Result Figure\n---\n**Filename**: ..." #LightCoral
+    file "Result Map\n---\n**Filename**: ..." #LightCyan
+}
+
+@enduml
