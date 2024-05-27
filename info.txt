@@ -1,5 +1,0 @@
-- Snowball search on each `cluster`
-- overlap between each `cluster`
-- map of clusters and links between these clusters
-- probably second generation of snowball search
-

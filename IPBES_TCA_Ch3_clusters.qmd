@@ -121,6 +121,34 @@ approach_colors <- c(
 )
 ```
 
+# Download of Data Files from Zenodo
+
+The data files of the repository are deposited in a separate Zenodo deposit untder the doi [10.5281/zenodo.11352062](https://doi.org/10.5281/zenodo.11352062). To re-download these, simply delete the `data` directory and run this code (or compile the report).
+
+
+```{r}
+#| label: download_data
+#| eval: false
+
+if (!dir.exists("data")) {
+    dir.create("data")
+}
+
+fns <- c("cluster.rds", "key_works.rds", "snowball.rds", "gdm.zip")
+for (fn in fns) {
+    if (!file.exists(fn)) {
+        url <- paste0("https://zenodo.org/record/11352062/files/", fn) |>
+            download.file(destfile = fn)
+    }
+    if (fn == "gdm.zip") {
+        if (!dir.exists(file.path("data", "gdm"))) {
+            unzip(file.path("data", "gdm.zip"), exdir = "data")
+        }
+    }
+}
+
+```
+
 # Verification of key papers
 
 The key papers should describe the cluster, exactly one cluster, and not multiple clusters. In other words,
@@ -154,7 +182,7 @@ for (i in grep("cluster", names(cluster), value = TRUE)) {
 
 # Do Searches
 
-## Get Generell key-works and Snowball
+## Get General key-works and Snowball
 
 ```{r}
 #| label: get_key_works_snowball
@@ -381,6 +409,7 @@ toc()
 
 ## Create Static Citation Network Graph of the General Corpus
 
+
 ```{r}
 #| label: openalex_graph
 ## | |
@@ -416,9 +445,9 @@ if (no < 4) {
 }
 ```
 
-## Create Static Citation Network Graph of the S1 Corpus
+## Create Static Citation Network Graph of the Approach (Cluster) Corpora
 
-Only S1 corpus of S1 can be graphed due to the size of the S2 corpus.
+Some of these graphs can not be created as they would be to large. 
 
 ```{r}
 #| label: openalex_graph_S1
@@ -447,7 +476,7 @@ lapply(
 toc()
 ```
 
-## Create Interactive Citation Network Graph of the S1 Corpus
+## Create Interactive Citation Network Graph of the Approach (Cluster) Corpora
 
 ```{r}
 #| label: openalex_graph_S1_interactive
@@ -474,7 +503,7 @@ lapply(
 toc()
 ```
 
-## Create Maps of the S1 Corpus
+## Create Maps of the Approach (Cluster) Corpora
 
 Create Maps of the first author only
 
@@ -669,7 +698,7 @@ data |>
     IPBES.R::table_dt()
 ```
 
-## Graphs and Maps
+## Graphs and Maps of Approach (Cluster) Corpora
 
 The following interactions are possible in the interactive graphs:
 
@@ -689,17 +718,17 @@ The following interactions are possible in the interactive graphs:
 
 ![](maps/map_all_authors__S1.png)
 
-### Cluster 1
+### Approach 1
 
 ![](maps/map_first_author_cluster_1__S1.png)
-Ach so. 
+
 ![](figures/cluster_1_S1_cited_by_count_by_year.png)
 
 - [Better quality map](maps/map_first_author_cluster_1__S1.pdf){target=_blank}
 - [Better quality cluster](figures/cluster_1_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_1_S1_interactive_network.html){target=_blank}.
 
-### Cluster 2
+### Approach 2
 
 ![](maps/map_first_author_cluster_2__S1.png)
 
@@ -709,7 +738,7 @@ Ach so.
 - [Better quality cluster](figures/cluster_2_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_2_S1_interactive_network.html){target=_blank}.
 
-### Cluster 3
+### Approach 3
 
 ![](maps/map_first_author_cluster_3__S1.png)
 
@@ -719,7 +748,7 @@ Ach so.
 - [Better quality cluster](figures/cluster_3_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_3_S1_interactive_network.html){target=_blank}.
 
-### Cluster 4
+### Approach 4
 
 ![](maps/map_first_author_cluster_4__S1.png)
 
@@ -729,7 +758,7 @@ Ach so.
 - [Better quality cluster](figures/cluster_4_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_4_S1_interactive_network.html){target=_blank}.
 
-### Cluster 5
+### Approach 5
 
 !![](maps/map_first_author_cluster_5__S1.png)
 
@@ -739,7 +768,7 @@ Ach so.
 - [Better quality cluster](figures/cluster_5_S1_cited_by_count_by_year.pdf){target=_blank}
 - [Interactive](figures/cluster_5_S1_interactive_network.html){target=_blank}.
 
-### Cluster 6
+### Approach 6
 
 ![](maps/map_first_author_cluster_6__S1.png)
 
@@ -750,23 +779,29 @@ Ach so.
 - [Interactive](figures/cluster_6_S1_interactive_network.html){target=_blank}.
 
 
-## Common works between clusters
+## Common works between Approaches
 
-This section looks at common works between the keypapers of each cluster as well as the whole corpus as obtained through a first generation snowball search using the provided keyworks.
-
-The links are classifiad using three levels:
-
-- **in_l1**: (keypaper in `from`) in (keypaper in `to`)
-- **in_l2**: (keypaper in `from`) in (snowball in `to`)
-- **in_l3**: (snowball in `from`) in (snowball in `to`)
+This section looks at common works between the snowball corpora of the different approaches.
 
 ### Cluster properties
 
-- **n**: number of papers in the snowball corpus
-- **n_kp**: number of keypapers
+- **id**: name of the cluster (approach)
+- **n**: number of papers in the snowball corpus of the approach
+- **n_kp**: number of keypapers in the approach
+- **links**: number of papers in the snowball corpus of the approach which are also in other appros=ach snowball corpora
 
 ```{r}
-IPBES.R::table_dt(data = cluster$links$nodes[, -1])
+cluster$links$nodes |>
+    dplyr::select(
+        id,
+        n,
+        n_kp,
+        links = only_l3
+    ) |>
+    IPBES.R::table_dt(
+        fixedColumns = NULL, 
+        filenme = "approaches_links"
+    )
 ```
 
 
@@ -774,19 +809,25 @@ IPBES.R::table_dt(data = cluster$links$nodes[, -1])
 
 - **from**: cluster which is the cluster in which the papers are
 - **to**: cluster to which the `from` cluster is compared to
-- **in_l1**: (keypaper in `from`) in (keypaper in `to`)
-- **in_l2**: (keypaper in `from`) in (snowball in `to`)
-- **in_l3**: (snowball in `from`) in (snowball in `to`)
+- **links**: works in (snowball corpus `from`) in (snowball corpus `to`)
 
 ```{r}
-IPBES.R::table_dt(data = cluster$links$edges)
+cluster$links$edges |>
+    dplyr::select(
+        from,
+        to,
+        links = in_l3
+    ) |>
+    IPBES.R::table_dt(
+        fixedColumns = NULL, 
+        filenme = "approaches_overlap"
+    )
 ```
 
-The column `in_l1` shgould be all zeros as the keypapers should only be linked to one cluster and not to multiple clusters.
 
 
 
-### Links between Clusters
+### Links Graphs between Clusters
 
 ```{r}
 #| label: get_linkages
@@ -944,31 +985,9 @@ plot_chord <- function(
 }
 ```
 
-#### Level 1
 
-Number of keypapers in one cluster in the keypapers of another cluster.
 
-```{r}
-#| label: plot_chord_l1
-#|
-
-plot_chord(linkages, "l1")
-plot_chord(linkages_p, "l1")
-```
-
-#### Level 2
-
-Number of keypapers in one cluster in the snowball corpus of another cluster.
-
-```{r}
-#| label: plot_chord_l2
-#|
-
-plot_chord(linkages, "l2")
-plot_chord(linkages_p, "l2")
-```
-
-#### Level 3
+#### Works overlap of Approach Corpora
 
 Number of papers in the snowball corpus in one cluster in the snowball corpus of another cluster.
 
@@ -976,17 +995,26 @@ Number of papers in the snowball corpus in one cluster in the snowball corpus of
 #| label: plot_chord_l3
 #|
 
+fn <- file.path("figures", "common_l3.html")
 p <- plot_chord(linkages, "l3", margin = 250)
-htmlwidgets::saveWidget(p, file = file.path("figures", "common_l3.html"), selfcontained = TRUE)
+htmlwidgets::saveWidget(p, file = fn, selfcontained = TRUE)
 unlink(file.path("figures", "common_l3_files"), recursive = TRUE)
-p
-
-p <- plot_chord(linkages, "l3", equal_angles = TRUE, showTicks = FALSE, groupnamePadding = 5)
-htmlwidgets::saveWidget(p, file = file.path("figures", "common_l3_equal.html"), selfcontained = TRUE)
-unlink(file.path("figures", "common_l3_equal_files"), recursive = TRUE)
-p
-
 ```
+
+<iframe src="figures/common_l3.html" width="100%" height="1000px"></iframe>
+
+To download the graph ot to open it in a seperate tab [click here](figures/common_l3.html){target="_blank"}.
+
+```{r}
+fn <- file.path("figures", "common_l3_equal.html")
+p <- plot_chord(linkages, "l3", equal_angles = TRUE, showTicks = FALSE, groupnamePadding = 5)
+htmlwidgets::saveWidget(p, file = fn, selfcontained = TRUE)
+unlink(file.path("figures", "common_l3_equal_files"), recursive = TRUE)
+```
+
+<iframe src="figures/common_l3_equal.html" width="100%" height="1000px"></iframe>
+
+To download the graph ot to open it in a seperate tab [click here](figures/common_l3_equal.html){target="_blank"}.
 
 ## Common works between Cluster and General corpus
 
@@ -1113,7 +1141,7 @@ sankeyNetwork(
         file = paste0(bn, ".html"),
         selfcontained = TRUE
     )
-webshot::webshot(
+tmp <- webshot::webshot(
     url = paste0(bn, ".html"),
     file = paste0(bn, ".pdf")
 )
@@ -1138,7 +1166,7 @@ sankeyNetwork(
         file = paste0(bn, ".html"),
         selfcontained = TRUE
     )
-webshot::webshot(
+tmp <- webshot::webshot(
     url = paste0(bn, ".html"),
     file = paste0(bn, ".pdf")
 )
@@ -1162,12 +1190,27 @@ sankeyNetwork(
         file = paste0(bn, ".html"),
         selfcontained = TRUE
     )
-unlink(paste0(bn, "_files"), recursive = TRUE)
 
-webshot::webshot(
+tmp <- webshot::webshot(
     url = paste0(bn, ".html"),
     file = paste0(bn, ".pdf")
 )
 
+unlink(paste0(bn, "_files"), recursive = TRUE)
+
 ```
 
+### Only first order theories
+<iframe src="figures/approaches_theories_1.html" width="100%" height="1000px"></iframe>
+
+To download the graph ot to open it in a seperate tab [click here](figures/approaches_theories_1.html){target="_blank"}.
+
+### Only second order theories
+<iframe src="figures/approaches_theories_2.html" width="100%" height="1000px"></iframe>
+
+To download the graph ot to open it in a seperate tab [click here](figures/approaches_theories_2.html){target="_blank"}.
+
+### First and second first order theories
+<iframe src="figures/approaches_theories_1_2.html" width="100%" height="1000px"></iframe>
+
+To download the graph ot to open it in a seperate tab [click here](figures/approaches_theories_1_2.html){target="_blank"}.

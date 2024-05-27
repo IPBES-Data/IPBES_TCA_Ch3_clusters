@@ -1,60 +1,55 @@
 # Transformative Change Assessment - Ch 3 - Clusters
 
 [![DOI](https://zenodo.org/badge/DOI/99.9999/zenodo.9999999.svg)](https://doi.org/99.9999/zenodo.9999999)
-[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC_BY--SA_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 
-This repository is part of an ongoing IPBES project.
-
-The authors do not take any responsibility for it's copntent or the correct working of the code. If scripts in here wipe your data, you are on your own.
-
-Nevertheless, please feel free to browse the code and re-use it at your own risk.
-
-Once finalised, the final repo will be published on Zenodo
-
 ## Metadata
-
-- **Project name**:Transformative Change Assessment - Ch 3 - Clusters
 - **Assessment**: Transformative Change Assessment
+- **Project name**:Transformative Change Assessment - Ch 3 - Clusters
 - **Chapter**: Ch 3
-- **Short Name**: `IPBES_TCA_Ch3_Clusters`
-  Please always include `IPBES_TCA_Ch3_Clusters` in the title of the email to make sure it gets filtered correctly.
-- **Status**: waiting for response and way forward
+- **Shortname**: IPBES_TCA_Ch3_clusters
+- **Github Repo**: [github repository for the branch](https://github.com/IPBES-Data/IPBES_TCA_Ch3_clusters/tree/DMR_final)
 
-- **Assigned To**:
-  - Rainer <Rainer.Krug@Senckenberg.de> <Rainer@krugs.de>
+- **Project leaders**
 
-- **email to**:
-  - CLA Rafa
-  - TSU Data <Rainer.Krug@Senckenberg.de>
+  - [Catherine Sabinot](mailto:catherine.sabinot@ird.fr)
+  - [Rainer Krug](mailto:Rainer.Krug@senckenberg.de,Rainer@krugs.de)
 
-- **email cc**:
-  - LA
-  - LA
-  - LA
-  - TSU TCA <tipbes-tsu-transformative-change@umontpellier.fr>
-  - TSU Data <renske.gudde@senckenberg.de>
-  - TSU Data <aidin.niamir@senckenberg.de>
-  - ...
+- **Researchers**
 
-- **Github Repo**: [github repository]()
-- **Googl Drive Folder**: None
+  - [Andressa Mansur](mailto:andressavmansur@gmail.com)
+  - [Maiko Nishi](mailto:nishi@unu.edu)
+  - [Zühre Aksoy](mailto:zuhre.aksoy@boun.edu.tr)
+  - [David Lam](mailto:david.lam@leuphana.de)
+
+- **Data curator(s)**
+
+  - [Camille Guibal](mailto:camille.guibal@umontpellier.fr)
+
+
 
 ## Folders
 
-- **`data`**: data files created during the running of the `snowball.qmd` file and contains cached as well as final data files.
+- **`data`**: data files created during the running of the `snowball.qmd` file and contains cached as well as final data files. The data folder is available at [10.5281/zenodo.11352062](https://doi.org/10.5281/zenodo.11352062)
+  - `gdm`: Folder containing data for Maps
+  - `cluster.rds`: Cluster data, including keypaper, snowball, etc
+  - `snowball.rds`: Snowball data of the general snowball
 - **`figures`**: figures created during the running of the `snowball.qmd` file in low-res as well as high-res.
-- **`input`**: input files for the `snowball.qmd` file
-- **`inut/key_papers`**: Key papers for the snowball pilot and a `.csv` file with one column containing the dois
+  - `approaches_theories_*.*`: Sankeys of Theories -> Approaches in different formats and level 1, level two and both
+  - `cluster_*.*`: Cluster citation networks  any are missing because they could not be plotted (to many nodes and edges)
+  - `common_l3.*`: Common papers in Approaches between the snowball searches. the html is ionteractive.
+  - `snowball_cited_*.*`: Snowball citation networks of the general snowball search
+- **`maps`**: Maps created during the running of the `IPBES_TCA_Ch3_clusters.qmd` file
+  - author distributions by country by first author and all authors for each Approach (cluster)
+- **`input`**: input files for the `IPBES_TCA_Ch3_clusters.qmd` file
+  - `key_papers`: folder containing the key papers for the Approach / cluster based snowball searches
+  - `keypapers.csv` file with the key papers for the general snowball search
+  - `T&F of TC from CA - chapter 3 - All theories from CA coded.csv` containing raw data for Approach based snowball searches as well as relationship between Theories and Approaches
 
-## Status
+### Description
 
-- [ ] Kepypaper were imported into Zotero and the `csv` and `bib` files were exported
-- [ ] `snowball.qmd` report file was created and the `R` scripts added
-- [ ] `snowball.html` report created and data files and figures created
-- [ ] overlap of the citation networks of each cluster were generated
-- [ ] map of clusters as nodes and links between clusters generated
+The review corresponds to the IPBES transformative change assessment. The IPBES scoping document for the transformative change assessment describes that chapter 3 should address how transformative change occurs, focusing on those changes that can be intentionally promoted, accelerated, and scaled to realize a sustainable world where biodiversity can thrive. The chapter provides evidence on theories and frameworks for understanding deliberate, or emergent transformative change. In this context, a review of knowledge focused on building clusters of theories and frameworks of transformative change based on literature on transformative change for sustainability was conducted and is further described below.
 
-## Reports
+## Technical Reports
 
 - [IPBES TCA Ch3 clusters](IPBES_TCA_Ch3_clusters.html) 
