@@ -123,8 +123,8 @@ approach_colors <- c(
 
 # Verification of key papers
 
-The key papers should describe the cluster, exactly one cluster, and not multiple clusters. In other words,
-a key paper should only be in one cluster. If a key-papers is in multiple clusters, this would lead to an overlap wof the snowball corpus which is not caused by the cluster itself, but by the key paper which is in multiple clusters.
+The key papers should describe only one cluster, and not multiple clusters. In other words,
+a key paper should be in only one cluster. If a key-paper is in multiple clusters, this would lead to an overlap of the snowball corpus which is not caused by the cluster itself, but by the key paper which is in multiple clusters.
 
 The papers are the following (the table will be empty if there are none):
 
@@ -645,7 +645,7 @@ toc()
 
 ![Cited by count](figures/snowball_cited_by_count.png)
 
-To download the highres graph, please [click here](figures/snowball_cited_by_count.pdf).
+To download the high resolution graph, please [click here](figures/snowball_cited_by_count.pdf).
 
 ```{r}
 #| label: general_snowball_nodes_data
@@ -673,7 +673,7 @@ data |>
 
 The following interactions are possible in the interactive graphs:
 
-- moving your mouse over a node, the title author and year of the paper is shown.
+- when moving your mouse over a node, the title author and year of the paper is shown.
 - clicking on a node will open the paper in a new tab.
 - scrolling up and down with your scroll wheel zooms in and out
 - clicking on the canvas and move the mouse will move the network
