@@ -992,7 +992,7 @@ p
 
 ### Overlab between Cluster and General key-papers and corpi
 
-Here I will show the overlap between the combined cluster corpi and the General corpus based on the six key paper.
+Here I will show the overlap between the combined cluster corpi and the General corpus based on the six key papers.
 
 |                                | Cluster                               | General                           | overlap                                                                                      |
 |--------------------------------|---------------------------------------|-----------------------------------|----------------------------------------------------------------------------------------------| 
