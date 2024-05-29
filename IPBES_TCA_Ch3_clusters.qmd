@@ -1,22 +1,56 @@
 ---
-title: "Transformative Change Assessment - Ch 3 - Clusters"
-author: Rainer M Krug <Rainer.Krug@senckenberg.de> <Rainer@krugs.de>
+title: "Transformative Change Assessment Chapter 3 - Aproaches and General snowball search"
+date: today
+author:
+  - name: 
+        family: Krug
+        given: Rainer M.    
+    id: rmk
+    orcid: 0000-0002-7490-0066
+    email: Rainer.Krug@uzh.ch, Rainer@Krugs.de
+    affiliation: 
+      - name: Senckenberg
+        city: Frankfurt (Main)
+        url: https://www.senckenberg.de/en/institutes/sbik-f/
+    roles: [author, editor]
+abstract: > 
+    To be added
+keywords:
+  - DMR
+  - TCA
+  - Ch3
+license: "CC BY"
+
+citation: 
+  type: report
+  container-title: Report Transformative Change Assessment Chapter 3 Approaches
+  doi: 10.5281/zenodo.11381694
+doi: 10.5281/zenodo.11381694
+version: 2.0.0
+
 format:
     html:
         toc: true
-        toc-depth: 3
+        toc-depth: 5
+        toc_expand: true
         embed-resources: true
         code-fold: true
-        code-summary: "Show the code"
+        code-summary: 'Show the code'
         grid:
             sidebar-width: 0px
             body-width: 4000px
             margin-width: 200px
-            gutter-width: 1.5rem   
+            gutter-width: 1.5rem      
+
 params:
     key_paper: "cX_key-paper.csv"
     gdm_path: !expr file.path('data', 'gdm')
 ---
+
+
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11381694.svg)](https://doi.org/10.5281/zenodo.11381694)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
 
 
@@ -163,6 +197,7 @@ if (nf < 3) {
             file = file.path("figures", "tca_ch3_clusters.png")
         )
 }
+invisible()
 ```
 
 ![Schematic overview of the TCA Chapter 3 Approaches (cluster) snowball searches](figures/tca_ch3_clusters.svg)
