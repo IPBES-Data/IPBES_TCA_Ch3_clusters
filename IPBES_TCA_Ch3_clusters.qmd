@@ -56,7 +56,9 @@ params:
 
 ```{r}
 #| label: setup
-#|
+#| message: false
+#| eval: true
+
 if (!exists("params")) {
     params <- rmarkdown::yaml_front_matter("IPBES_TCA_Ch3_clusters.qmd")$params
 }
@@ -185,19 +187,23 @@ if (nf < 3) {
     puml |>
         plantuml::get_graph(
             file = file.path("figures", "tca_ch3_clusters.pdf")
-        )
+        ) |>
+        invisible()
+
 
     puml |>
         plantuml::get_graph(
             file = file.path("figures", "tca_ch3_clusters.svg")
-        )
+        ) |>
+        invisible()
+
 
     puml |>
         plantuml::get_graph(
             file = file.path("figures", "tca_ch3_clusters.png")
-        )
+        ) |>
+        invisible()
 }
-invisible()
 ```
 
 ![Schematic overview of the TCA Chapter 3 Approaches (cluster) snowball searches](figures/tca_ch3_clusters.svg)
@@ -1082,9 +1088,11 @@ Number of papers in the snowball corpus in one cluster in the snowball corpus of
 #|
 
 fn <- file.path("figures", "common_l3.html")
-p <- plot_chord(linkages, "l3", margin = 250)
-htmlwidgets::saveWidget(p, file = fn, selfcontained = TRUE)
-unlink(file.path("figures", "common_l3_files"), recursive = TRUE)
+if (!file.exists(fn)) {
+    p <- plot_chord(linkages, "l3", margin = 250)
+    htmlwidgets::saveWidget(p, file = fn, selfcontained = TRUE)
+    unlink(file.path("figures", "common_l3_files"), recursive = TRUE)
+}
 ```
 
 <iframe src="figures/common_l3.html" width="100%" height="1000px"></iframe>
@@ -1093,9 +1101,11 @@ To download the graph ot to open it in a seperate tab [click here](figures/commo
 
 ```{r}
 fn <- file.path("figures", "common_l3_equal.html")
-p <- plot_chord(linkages, "l3", equal_angles = TRUE, showTicks = FALSE, groupnamePadding = 5)
-htmlwidgets::saveWidget(p, file = fn, selfcontained = TRUE)
-unlink(file.path("figures", "common_l3_equal_files"), recursive = TRUE)
+if (!file.exists(fn)) {
+    p <- plot_chord(linkages, "l3", equal_angles = TRUE, showTicks = FALSE, groupnamePadding = 5)
+    htmlwidgets::saveWidget(p, file = fn, selfcontained = TRUE)
+    unlink(file.path("figures", "common_l3_equal_files"), recursive = TRUE)
+}
 ```
 
 <iframe src="figures/common_l3_equal.html" width="100%" height="1000px"></iframe>
@@ -1300,3 +1310,9 @@ To download the graph ot to open it in a seperate tab [click here](figures/appro
 <iframe src="figures/approaches_theories_1_2.html" width="100%" height="1000px"></iframe>
 
 To download the graph ot to open it in a seperate tab [click here](figures/approaches_theories_1_2.html){target="_blank"}.
+
+# Summary of R session
+
+```{r}
+sessioninfo::session_info()
+```
