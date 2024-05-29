@@ -53,6 +53,9 @@ params:
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
 
+# Setup
+
+Setup the environment for the compilation of the report.
 
 ```{r}
 #| label: setup
@@ -165,7 +168,7 @@ approach_colors <- c(
 )
 ```
 
-## Schematic Overview
+## Schematic Overview of the TCA Chapter 3 Approaches (cluster) Snowball SearchesSearches and Analysis
 
 ```{r}
 #| label: ch3_clusters_overview_plantuml
@@ -215,33 +218,32 @@ if (nf < 3) {
 
 # Download of Data Files from Zenodo
 
-The data files of the repository are deposited in a separate Zenodo deposit untder the doi [10.5281/zenodo.11352062](https://doi.org/10.5281/zenodo.11352062). To re-download these, simply delete the `data` directory and run this code (or compile the report).
+The data files of the repository are deposited in a separate Zenodo deposit untder the doi [10.5281/zenodo.11352062](https://doi.org/10.5281/zenodo.11352062). 
+The `data` folder is not included in this deposit, but in a separate deposit at [10.5281/zenodo.11386248](https://doi.org/10.5281/zenodo.11386248).
+To guarantee reproducibility, =it is downloaded and extracted when the folder `data` does not exist. 
 
+All code to re-generate the data is included but might take a long time to run.
 
 ```{r}
 #| label: download_data
-#| eval: false
+#| 
 
 if (!dir.exists("data")) {
     dir.create("data")
-}
 
-fns <- c("cluster.rds", "key_works.rds", "snowball.rds", "gdm.zip")
-for (fn in fns) {
-    if (!file.exists(fn)) {
-        url <- paste0("https://zenodo.org/record/11352062/files/", fn) |>
-            download.file(destfile = fn)
-    }
-    if (fn == "gdm.zip") {
-        if (!dir.exists(file.path("data", "gdm"))) {
-            unzip(file.path("data", "gdm.zip"), exdir = "data")
-        }
-    }
-}
+    url <- paste0("https://zenodo.org/record/", "11386248", "/files/data.zip")
+    destfile <- tempfile(fileext = ".zip")
+    download.file(url, destfile)
 
+    unzip(destfile, exdir = "data")
+}
 ```
 
-# Verification of key papers
+# Method
+
+In this section the ddata is gathered and analysed. Results are shown in the Results section below.
+
+## Verification of key papers
 
 The key papers should describe the cluster, exactly one cluster, and not multiple clusters. In other words,
 a key paper should only be in one cluster. If a key-papers is in multiple clusters, this would lead to an overlap wof the snowball corpus which is not caused by the cluster itself, but by the key paper which is in multiple clusters.
@@ -263,7 +265,7 @@ sprintf('<a href="https://doi.org/%s" target="_blank">%s</a>', dupl_kp, dupl_kp)
     knitr::kable()
 ```
 
-These papers will be excluded from the analysis.
+These papers will be excluded from the analysis due to be present in more tha=en one cluster / approach..
 
 ```{r}
 for (i in grep("cluster", names(cluster), value = TRUE)) {
@@ -272,9 +274,9 @@ for (i in grep("cluster", names(cluster), value = TRUE)) {
 ```
 
 
-# Do Searches
+## Do Searches
 
-## Get General key-works and Snowball
+### Get General key-works and Snowball
 
 ```{r}
 #| label: get_key_works_snowball
@@ -310,7 +312,7 @@ flat_snow <- snowball2df(snowball) |>
     tibble::as_tibble()
 ```
 
-## Get Cluster key-works and  Snowballs
+### Get Cluster key-works and  Snowballs
 
 ```{r}
 #| label: get_clusters_works_snowball
@@ -497,9 +499,9 @@ toc()
 ```
 
 
-# Create Graphs
+## Create Graphs
 
-## Create Static Citation Network Graph of the General Corpus
+### Create Static Citation Network Graph of the General Corpus
 
 
 ```{r}
@@ -537,7 +539,7 @@ if (no < 4) {
 }
 ```
 
-## Create Static Citation Network Graph of the Approach (Cluster) Corpora
+### Create Static Citation Network Graph of the Approach (Cluster) Corpora
 
 Some of these graphs can not be created as they would be to large. 
 
@@ -568,7 +570,7 @@ lapply(
 toc()
 ```
 
-## Create Interactive Citation Network Graph of the Approach (Cluster) Corpora
+### Create Interactive Citation Network Graph of the Approach (Cluster) Corpora
 
 ```{r}
 #| label: openalex_graph_S1_interactive
@@ -595,7 +597,7 @@ lapply(
 toc()
 ```
 
-## Create Maps of the Approach (Cluster) Corpora
+### Create Maps of the Approach (Cluster) Corpora
 
 Create Maps of the first author only
 
