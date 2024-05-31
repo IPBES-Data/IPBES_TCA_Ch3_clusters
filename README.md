@@ -3,6 +3,9 @@
 [![DOI](https://zenodo.org/badge/DOI/99.9999/zenodo.9999999.svg)](https://doi.org/99.9999/zenodo.9999999)
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC_BY--SA_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 
+## Data Package
+[![DOI Data Package](https://zenodo.org/badge/DOI/99.9999/zenodo.9999999.svg)](https://doi.org/99.9999/zenodo.9999999)
+
 ## Metadata
 - **Assessment**: Transformative Change Assessment
 - **Project name**:Transformative Change Assessment - Ch 3 - Clusters
@@ -30,7 +33,7 @@
 
 ## Folders
 
-- **`data`**: data files created during the running of the `snowball.qmd` file and contains cached as well as final data files. The data folder is available at [10.5281/zenodo.11352062](https://doi.org/10.5281/zenodo.11352062)
+- **`data`**: data files created during the running of the `snowball.qmd` file and contains cached as well as final data files. The data folder can be downloaded from [10.5281/zenodo.11352062](https://doi.org/10.5281/zenodo.11352062)
   - `gdm`: Folder containing data for Maps
   - `cluster.rds`: Cluster data, including keypaper, snowball, etc
   - `snowball.rds`: Snowball data of the general snowball
@@ -48,7 +51,7 @@
 
 ### Description
 
-The review corresponds to the IPBES transformative change assessment. The IPBES scoping document for the transformative change assessment describes that chapter 3 should address how transformative change occurs, focusing on those changes that can be intentionally promoted, accelerated, and scaled to realize a sustainable world where biodiversity can thrive. The chapter provides evidence on theories and frameworks for understanding deliberate, or emergent transformative change. In this context, a review of knowledge focused on building clusters of theories and frameworks of transformative change based on literature on transformative change for sustainability was conducted and is further described below.
+TO BE ADDED
 
 ## Technical Reports
 
