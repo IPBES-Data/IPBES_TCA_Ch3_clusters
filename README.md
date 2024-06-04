@@ -9,7 +9,7 @@
 ## Metadata
 - **Assessment**: Transformative Change Assessment
 - **Project name**:Transformative Change Assessment - Ch 3 - Clusters
-- **Chapter**: Ch 3
+- **Chapter**: Chapter 3
 - **Shortname**: IPBES_TCA_Ch3_clusters
 - **Github Repo**: [github repository for the branch](https://github.com/IPBES-Data/IPBES_TCA_Ch3_clusters/tree/DMR_final)
 
@@ -25,11 +25,10 @@
   - [Zühre Aksoy](mailto:zuhre.aksoy@boun.edu.tr)
   - [David Lam](mailto:david.lam@leuphana.de)
 
-- **Data curator(s)**
+- **Data Curator(s)**
 
+  - [Rainer M Krug](mailto:Rainer.Krug@uzh.ch,Rainer@krugs.de)
   - [Camille Guibal](mailto:camille.guibal@umontpellier.fr)
-
-
 
 ## Folders
 
@@ -55,4 +54,5 @@ TO BE ADDED
 
 ## Technical Reports
 
-- [IPBES TCA Ch3 clusters](IPBES_TCA_Ch3_clusters.html) 
+- [[ ] TCA Ch3 clusters](IPBES_TCA_Ch3_clusters.html) 
+  - [x] Data Package DOI [10.5281/zenodo.11386248](https://doi.org/10.5281/zenodo.11386248)

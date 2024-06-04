@@ -218,11 +218,12 @@ if (nf < 3) {
 
 # Download of Data Files from Zenodo
 
-The data files of the repository are deposited in a separate Zenodo deposit untder the doi [10.5281/zenodo.11352062](https://doi.org/10.5281/zenodo.11352062). 
 The `data` folder is not included in this deposit, but in a separate deposit at [10.5281/zenodo.11386248](https://doi.org/10.5281/zenodo.11386248).
-To guarantee reproducibility, =it is downloaded and extracted when the folder `data` does not exist. 
+To guarantee reproducibility, it is downloaded and extracted when the folder `data` does not exist. 
 
 All code to re-generate the data is included but might take a long time to run.
+
+Disable this block to re-generate the data. The folder `data` has to exist.
 
 ```{r}
 #| label: download_data
