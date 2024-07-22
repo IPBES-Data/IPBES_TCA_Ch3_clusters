@@ -15,20 +15,21 @@
 
 - **Project leaders**
 
-  - [Catherine Sabinot](mailto:catherine.sabinot@ird.fr)
-  - [Rainer Krug](mailto:Rainer.Krug@senckenberg.de,Rainer@krugs.de)
+  - [Catherine Sabinot](mailto:catherine.sabinot@ird.fr) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0001-5136-1517)
+  - [Rainer Krug](mailto:Rainer.Krug@senckenberg.de,Rainer@krugs.de) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-7490-0066)
+  - [Andressa Mansur](mailto:andressavmansur@gmail.com) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0003-4104-3085)
 
 - **Researchers**
 
-  - [Andressa Mansur](mailto:andressavmansur@gmail.com)
-  - [Maiko Nishi](mailto:nishi@unu.edu)
-  - [Zühre Aksoy](mailto:zuhre.aksoy@boun.edu.tr)
-  - [David Lam](mailto:david.lam@leuphana.de)
+  - [Maiko Nishi](mailto:nishi@unu.edu) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0001-7323-9168)
+  - [Zühre Aksoy](mailto:zuhre.aksoy@boun.edu.tr) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0003-2142-2766)
+  - [David Lam](mailto:david.lam@leuphana.de) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-3604-0800)
+  - [Hakon Stokland](mailto:hakon.stokland@nina.no>) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/XXXX)
 
 - **Data Curator(s)**
 
-  - [Rainer M Krug](mailto:Rainer.Krug@uzh.ch,Rainer@krugs.de)
-  - [Camille Guibal](mailto:camille.guibal@umontpellier.fr)
+  - [Camille Guibal](mailto:camille.guibal@umontpellier.fr) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-3376-2891)
+  - [Rainer M Krug](mailto:Rainer.Krug@uzh.ch,Rainer@krugs.de) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-7490-0066)
 
 ## Folders
 
