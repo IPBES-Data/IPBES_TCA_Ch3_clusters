@@ -83,8 +83,11 @@ library(tictoc)
 library(patchwork)
 
 # devtools::install_github("mattflor/chorddiag")
-library(chorddiag)
 
+if (!require("chorddiag")) {
+  devtools::install_github("mattflor/chorddiag")
+  library(chorddiag)
+}
 
 if (!require("plantuml")) {
   install.packages("plantuml", repos = c("https://rkrug.r-universe.dev", "https://cran.r-project.org"))
@@ -244,6 +247,15 @@ In this section the ddata is gathered and analysed. Results are shown in the Res
 
 ## Verification of key papers
 
+We have the following number of keypapers per cluster / approach:
+
+```{r}
+sapply(cluster, function(x) {
+  length(x$dois)
+})
+```
+
+
 The key papers should describe the cluster, exactly one cluster, and not multiple clusters. In other words,
 a key paper should only be in one cluster. If a key-papers is in multiple clusters, this would lead to an overlap wof the snowball corpus which is not caused by the cluster itself, but by the key paper which is in multiple clusters.
 
@@ -270,6 +282,14 @@ These papers will be excluded from the analysis due to be present in more tha=en
 for (i in grep("cluster", names(cluster), value = TRUE)) {
   cluster[[i]]$dois <- cluster[[i]]$dois[!cluster[[i]]$dois %in% dupl_kp]
 }
+```
+
+This results in the folowing number of key papers used for the dnowball search:
+
+```{r}
+sapply(cluster, function(x) {
+  length(x$dois)
+})
 ```
 
 
@@ -762,6 +782,13 @@ toc()
 
 
 # Results
+
+The snowball searc h resulted in the folowing number of papers in each corpus for the cluster / approaches
+```{r}
+sapply(cluster[1:6], function(x) {
+  nrow(x$snowball_1$nodes)
+})
+```
 
 ## Network Graph of General Snowball Search
 
