@@ -1,6 +1,6 @@
 ---
-title: "Transformative Change Assessment Chapter 3 - Aproaches and General snowball search"
-date: today
+title: 'Chapter 3 - Aproaches and General snowball search'
+subtitle: 'IPBES Transformative Change Assessment'
 author:
   - name: 
         family: Krug
@@ -8,20 +8,24 @@ author:
     id: rmk
     orcid: 0000-0002-7490-0066
     email: Rainer.Krug@uzh.ch, Rainer@Krugs.de
-    affiliation: 
-      - name: Senckenberg
-        city: Frankfurt (Main)
-        url: https://www.senckenberg.de/en/institutes/sbik-f/
     roles: [author, editor]
-keywords:
-  - DMR
-  - TCA
-  - Ch3
+  - name: 
+        family:  Sabinot
+        given:   Catherine
+    id: cs
+    orcid: 0000-0001-5136-1517
+    roles: [author]
+  - name: 
+        family:  Mansur
+        given:   Andressa
+    id: am
+    orcid: 0000-0003-4104-3085
+    roles: [author]
 license: "CC BY"
 
 citation: 
   type: report
-  container-title: Report Transformative Change Assessment Chapter 3 Approaches
+  container-title: 'IPBES Transformative Change Assessment'
   doi: 10.5281/zenodo.11381694
 doi: 10.5281/zenodo.11381694
 version: 2.0.0
@@ -50,6 +54,26 @@ params:
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11381694.svg)](https://doi.org/10.5281/zenodo.11381694)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
+Part of the Data Management Report [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXX)
+
+# Disclaimer
+This document is part of the Thematic assessment of the underlying causes of biodiversity loss, determinants of transformative change and options for achieving the 2050 vision for biodiversity. It is a technical background document to the [Data Management Report for the Transformative Change Assessment Corpus](https://doi.org/10.5281/zenodo.XXXXX). This document is a working document which is not approved by the plenary. For statements pelase see the approved version of the assessment. This document has the sole purpose to document the workflows used to obtain some statements, figures and maps, document the source of the data and make the process reproducible.
+
+# Contributors
+
+## Assessment Experts
+- [Maiko Nishi](mailto:nishi@unu.edu) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0001-7323-9168)
+- [Zühre Aksoy](mailto:zuhre.aksoy@boun.edu.tr) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0003-2142-2766)
+- [David Lam](mailto:david.lam@leuphana.de) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-3604-0800)
+- [Hakon Stokland](mailto:hakon.stokland@nina.no>) 
+
+## **Data Curator(s)**
+- [Camille Guibal](mailto:camille.guibal@umontpellier.fr) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-3376-2891)
+
+## Data and Knowledge tsu
+
+- Niamir, Aidin [![ORCID](./images/ORCID-iD_icon-16x16.png)](https://orcid.org/0000-0003-4511-3407)
+- Gudde, Renske  [![ORCID](./images/ORCID-iD_icon-16x16.png)](https://orcid.org/0000-0003-4727-1011)
 
 # Setup
 

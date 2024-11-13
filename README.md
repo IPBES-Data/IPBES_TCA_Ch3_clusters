@@ -1,35 +1,19 @@
 # Transformative Change Assessment - Ch 3 - Clusters
 
-[![DOI](https://zenodo.org/badge/DOI/99.9999/zenodo.9999999.svg)](https://doi.org/99.9999/zenodo.9999999)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11381693.svg)](https://doi.org/10.5281/zenodo.11381693)
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC_BY--SA_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 
 ## Data Package
-[![DOI Data Package](https://zenodo.org/badge/DOI/99.9999/zenodo.9999999.svg)](https://doi.org/99.9999/zenodo.9999999)
+
+[![DOI Data Package](https://zenodo.org/badge/DOI/10.5281/zenodo.11352061.svg)](https://doi.org/10.5281/zenodo.11352061)
 
 ## Metadata
+
 - **Assessment**: Transformative Change Assessment
 - **Project name**:Transformative Change Assessment - Ch 3 - Clusters
 - **Chapter**: Chapter 3
 - **Shortname**: IPBES_TCA_Ch3_clusters
 - **Github Repo**: [github repository for the branch](https://github.com/IPBES-Data/IPBES_TCA_Ch3_clusters/tree/DMR_final)
-
-- **Project leaders**
-
-  - [Catherine Sabinot](mailto:catherine.sabinot@ird.fr) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0001-5136-1517)
-  - [Rainer Krug](mailto:Rainer.Krug@senckenberg.de,Rainer@krugs.de) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-7490-0066)
-  - [Andressa Mansur](mailto:andressavmansur@gmail.com) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0003-4104-3085)
-
-- **Researchers**
-
-  - [Maiko Nishi](mailto:nishi@unu.edu) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0001-7323-9168)
-  - [Zühre Aksoy](mailto:zuhre.aksoy@boun.edu.tr) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0003-2142-2766)
-  - [David Lam](mailto:david.lam@leuphana.de) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-3604-0800)
-  - [Hakon Stokland](mailto:hakon.stokland@nina.no>) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/XXXX)
-
-- **Data Curator(s)**
-
-  - [Camille Guibal](mailto:camille.guibal@umontpellier.fr) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-3376-2891)
-  - [Rainer M Krug](mailto:Rainer.Krug@uzh.ch,Rainer@krugs.de) [![ORCID](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-7490-0066)
 
 ## Folders
 
@@ -39,7 +23,7 @@
   - `snowball.rds`: Snowball data of the general snowball
 - **`figures`**: figures created during the running of the `snowball.qmd` file in low-res as well as high-res.
   - `approaches_theories_*.*`: Sankeys of Theories -> Approaches in different formats and level 1, level two and both
-  - `cluster_*.*`: Cluster citation networks  any are missing because they could not be plotted (to many nodes and edges)
+  - `cluster_*.*`: Cluster citation networks any are missing because they could not be plotted (to many nodes and edges)
   - `common_l3.*`: Common papers in Approaches between the snowball searches. the html is ionteractive.
   - `snowball_cited_*.*`: Snowball citation networks of the general snowball search
 - **`maps`**: Maps created during the running of the `IPBES_TCA_Ch3_clusters.qmd` file
@@ -49,11 +33,7 @@
   - `keypapers.csv` file with the key papers for the general snowball search
   - `T&F of TC from CA - chapter 3 - All theories from CA coded.csv` containing raw data for Approach based snowball searches as well as relationship between Theories and Approaches
 
-### Description
-
-TO BE ADDED
-
 ## Technical Reports
 
-- [[ ] TCA Ch3 clusters](IPBES_TCA_Ch3_clusters.html) 
+- [ ] [TCA Ch3 clusters](IPBES_TCA_Ch3_clusters.html)
   - [x] Data Package DOI [10.5281/zenodo.11386248](https://doi.org/10.5281/zenodo.11386248)
